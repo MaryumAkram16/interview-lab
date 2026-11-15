@@ -36,7 +36,7 @@ function normalizeState(s){
  return s;
 }
 async function boot(){try{
- [topics,bank,cheats,sheetCatalog]=await Promise.all(['topics','questions','cheat-sheets','cheatsheet-catalog'].map(async n=>{const r=await fetch('./data/'+n+'.json');if(!r.ok)throw Error('Could not load '+n);return r.json()}));
+ [topics,bank,cheats,sheetCatalog]=await Promise.all(['topics','questions','cheat-sheets','cheatsheet-catalog'].map(async n=>{const r=await fetch('./data/'+n+'.json'+(n==='cheatsheet-catalog'?'?v=topic-groups-2':''),{cache:'no-cache'});if(!r.ok)throw Error('Could not load '+n);return r.json()}));
  state=normalizeState(state);save();render();
 }catch(e){document.getElementById('view').textContent='Unable to load your workspace. Serve the project with a local web server or GitHub Pages, then refresh. Your saved progress has not been erased.';console.error(e)}}
 
