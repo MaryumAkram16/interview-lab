@@ -6,3 +6,19 @@
 .catalog-controls{display:flex;gap:12px}.catalog-controls input{flex:1;min-width:0}.catalog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.catalog-item{display:block;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:18px;transition:border-color .15s,background .15s}.catalog-item:hover{border-color:#b5a5df;background:#fcfbff}.catalog-item h4{font-size:14px;line-height:1.6;margin:12px 0}.catalog-item .smalltext{font-size:11px;color:var(--purple)}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}@media(max-width:1100px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.catalog-grid{grid-template-columns:1fr}.catalog-controls{flex-direction:column}}
 
 .catalog-topic+.catalog-topic{margin-top:28px;padding-top:24px;border-top:1px solid var(--line)}.catalog-topic-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}.catalog-topic-heading h3{font:700 16px Manrope,sans-serif;margin:0}.catalog-item h4{font-weight:600}
+
+/* Keep every menu item reachable on short screens and at larger zoom levels. */
+.sidebar{overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#b9addd #f5f2fb}
+.sidebar>*{flex-shrink:0}
+.sidebar::-webkit-scrollbar{width:8px}
+.sidebar::-webkit-scrollbar-track{background:#f5f2fb}
+.sidebar::-webkit-scrollbar-thumb{background:#b9addd;border-radius:8px}
+.sidebar:focus-visible{outline:2px solid #aa9bea;outline-offset:-3px}
+.nav button{flex-shrink:0}
+@media(max-width:800px){
+ .sidebar{overflow:visible;scrollbar-gutter:auto}
+ .nav{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:#b9addd #f5f2fb}
+ .nav::-webkit-scrollbar{height:6px}
+ .nav::-webkit-scrollbar-track{background:#f5f2fb}
+ .nav::-webkit-scrollbar-thumb{background:#b9addd;border-radius:8px}
+}
