@@ -57,3 +57,7 @@ Use the same repository in either tool. Start with `AGENTS.md` and `docs/NEXT_TA
 The Cheat sheets page includes 25 uploaded HTML sheets with category filters and search, plus the original quick-reference summaries. Full sheets open in a new tab with their original formatting. Edit the files in `data/cheatsheets/` and their metadata in `data/cheatsheet-catalog.json`. See [the duplicate review](docs/CHEATSHEET_IMPORT.md) for the 10 PDF/HTML counterpart pairs omitted from duplicate publication.
 
 The full-length collection is grouped under six visible topic headings: DSA & Python; APIs & Reliability; Databases & Concurrency; Applied AI & LLMs; Machine Learning; Deep Learning. Search and the topic filter work across these groups. The two later handbook uploads were reviewed and not duplicated because they contain the same 25 sheets in different orders. See `docs/HANDBOOK_REVIEW.md`.
+
+## Practice & Learn
+
+The sidebar’s Practice & Learn page contains 16 researched external resources, grouped by Coding & Python, Machine Learning, Deep Learning, Generative AI & Agents, and Backend & SQL. Search, topic filtering, and a written-material preference help narrow the list. All resource buttons open the provider in a new tab. Edit `data/learning-resources.json` to maintain links, descriptions, access notes and suggested first steps. Source and review notes are in `docs/LEARNING_RESOURCES.md`. This is a curated directory, not a link editor, course-progress tracker, or account integration.

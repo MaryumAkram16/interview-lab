@@ -10,8 +10,8 @@ function harness(){
  vm.createContext(context);
  vm.runInContext(fs.readFileSync(path.join(root,'assets/cloud.js'),'utf8'),context);
  vm.runInContext(fs.readFileSync(path.join(root,'assets/app.js'),'utf8').replace(/boot\(\);\s*$/,''),context);
- context.content=Object.fromEntries(['topics','questions','cheat-sheets','cheatsheet-catalog'].map(n=>[n,JSON.parse(fs.readFileSync(path.join(root,'data',n+'.json'),'utf8'))]));
- vm.runInContext('topics=content.topics;bank=content.questions;cheats=content["cheat-sheets"];sheetCatalog=content["cheatsheet-catalog"];',context);
+ context.content=Object.fromEntries(['topics','questions','cheat-sheets','cheatsheet-catalog','learning-resources'].map(n=>[n,JSON.parse(fs.readFileSync(path.join(root,'data',n+'.json'),'utf8'))]));
+ vm.runInContext('topics=content.topics;bank=content.questions;cheats=content["cheat-sheets"];sheetCatalog=content["cheatsheet-catalog"];learningResources=content["learning-resources"];',context);
  return {context,run:s=>vm.runInContext(s,context),elements};
 }
 test('legacy numeric backups migrate without losing answers or notes',()=>{
@@ -25,7 +25,7 @@ test('question reorder preserves confidence and retry mapping by stable ID',()=>
  assert.equal(run('queue().length'),0);assert.equal(run('mastery(0)'),50);
 });
 test('all workspace views render and guided steps survive reordering',()=>{
- const {run,elements}=harness();for(const p of ['Overview','Guided sessions','Question box','Coding practice','Review queue','Progress','Cheat sheets','Cloud backup']){run('go('+JSON.stringify(p)+')');assert(elements.get('#view').innerHTML.length>100,p)}
+ const {run,elements}=harness();for(const p of ['Overview','Guided sessions','Question box','Coding practice','Review queue','Progress','Cheat sheets','Practice & Learn','Cloud backup']){run('go('+JSON.stringify(p)+')');assert(elements.get('#view').innerHTML.length>100,p)}
  run('bank.reverse();startSession()');assert.equal(run('bank[active].id'),'q-002');
 });
 test('malformed imports are rejected and unknown archived questions retained',()=>{
@@ -77,4 +77,22 @@ test('topic groups are visibly separated and every sheet appears exactly once',(
  run("sheetCategory='Databases & Concurrency';renderCatalogResults()");
  assert.equal((elements.get('#sheetResults').innerHTML.match(/class="catalog-topic"/g)||[]).length,1);
  assert.equal(run('catalogMatches().length'),4);
+});
+
+test('resource filters combine topic, content and text preference',()=>{
+ const {run}=harness();assert.equal(run('resourceMatches().length'),16);
+ run("resourceTopic='Coding & Python'");assert.equal(run('resourceMatches().length'),4);
+ run('resourceTextOnly=true');assert.equal(run('resourceMatches().length'),3);
+ run("resourceTopic='All topics';resourceQuery='cross-validation'");assert.equal(run('resourceMatches()[0].id'),'sklearn-mooc');
+ run("resourceQuery='not-a-real-resource'");assert.equal(run('resourceMatches().length'),0);
+});
+test('learning directory has five groups and safe external buttons',()=>{
+ const {run,elements}=harness();run("go('Practice & Learn')");
+ const markup=elements.get('#resourceResults').innerHTML;
+ assert.equal((markup.match(/class="resource-card"/g)||[]).length,16);
+ assert.equal((markup.match(/class="catalog-topic"/g)||[]).length,5);
+ assert.equal((markup.match(/target="_blank" rel="noopener noreferrer"/g)||[]).length,16);
+ assert.match(markup,/https:\/\/leetcode.com\/problemset\//);
+ assert.match(markup,/Free \+ paid options/);
+ run("resourceQuery='nothing matches';renderLearningResults()");assert.match(elements.get('#resourceResults').innerHTML,/No resources match/);
 });

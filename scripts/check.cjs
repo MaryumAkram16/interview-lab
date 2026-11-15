@@ -42,3 +42,15 @@ for(const entry of catalog){
 }
 assert.equal(new Set(topicOrders.values()).size,topicOrders.size,'Each topic needs a distinct rank.');
 console.log(topicOrders.size+' topic groups verified.');
+
+const resources=read('learning-resources'),resourceIds=new Set(),resourceUrls=new Set();
+for(const r of resources){
+ assert(typeof r.id==='string'&&!resourceIds.has(r.id),'Duplicate resource ID.');resourceIds.add(r.id);
+ const url=new URL(r.url);assert.equal(url.protocol,'https:');assert(!url.username&&!url.password,'Credentials in resource URL.');
+ assert(!resourceUrls.has(url.href),'Duplicate learning resource.');resourceUrls.add(url.href);
+ for(const field of ['title','provider','topic','format','level','access','description','startWith','accessNote','checkedAt'])assert(typeof r[field]==='string'&&r[field].trim(),'Missing resource '+field);
+ assert.equal(typeof r.textFriendly,'boolean');assert(Array.isArray(r.sources)&&r.sources.includes(r.url));
+ for(const source of r.sources)assert.equal(new URL(source).protocol,'https:');
+}
+assert(resources.length>0,'No learning resources.');
+console.log(resources.length+' unique external learning resources and source URLs verified.');

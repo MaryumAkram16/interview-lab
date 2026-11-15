@@ -1,0 +1,294 @@
+[
+  {
+    "id": "leetcode",
+    "title": "LeetCode Problems",
+    "provider": "LeetCode",
+    "topic": "Coding & Python",
+    "url": "https://leetcode.com/problemset/",
+    "format": "Interactive problems",
+    "level": "Beginner–advanced",
+    "access": "Free + paid options",
+    "textFriendly": true,
+    "description": "Interview-style algorithm problems with an online editor and test cases.",
+    "startWith": "Choose Easy array, string, and hash-map problems. Write Python first; explain time and space complexity.",
+    "accessNote": "Free problems are available; Premium unlocks additional questions and features. An account is useful for submissions.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://leetcode.com/problemset/",
+      "https://support.leetcode.com/hc/en-us/articles/360011884094-What-will-I-get-with-a-premium-subscription"
+    ]
+  },
+  {
+    "id": "neetcode",
+    "title": "NeetCode Roadmap",
+    "provider": "NeetCode",
+    "topic": "Coding & Python",
+    "url": "https://neetcode.io/roadmap",
+    "format": "Problem roadmap + videos",
+    "level": "Beginner–intermediate",
+    "access": "Free + paid options",
+    "textFriendly": false,
+    "description": "A structured route through coding-interview patterns, including Arrays & Hashing.",
+    "startWith": "Start with Arrays & Hashing. Attempt a problem before watching its explanation.",
+    "accessNote": "The roadmap and practice lists have free content; Pro courses and features are separate.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://neetcode.io/roadmap",
+      "https://blog.neetcode.io/p/prepare-coding-interviews"
+    ]
+  },
+  {
+    "id": "exercism-python",
+    "title": "Python Track",
+    "provider": "Exercism",
+    "topic": "Coding & Python",
+    "url": "https://exercism.org/tracks/python",
+    "format": "Exercises + written feedback",
+    "level": "Beginner–intermediate",
+    "access": "Free",
+    "textFriendly": true,
+    "description": "Python exercises focused on language concepts, readable solutions, and test-driven practice.",
+    "startWith": "Practise dictionaries, collections, and functions to get comfortable coding from a blank file.",
+    "accessNote": "Free Python track. An account is needed to save work and use track features.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://exercism.org/tracks/python"
+    ]
+  },
+  {
+    "id": "hackerrank-python",
+    "title": "Python Challenges",
+    "provider": "HackerRank",
+    "topic": "Coding & Python",
+    "url": "https://www.hackerrank.com/domains/python",
+    "format": "Interactive problems",
+    "level": "Beginner–intermediate",
+    "access": "Free practice",
+    "textFriendly": true,
+    "description": "Small Python challenges covering strings, sets, collections, classes, and debugging.",
+    "startWith": "Use the basic data types, sets, and collections sections as warm-ups before timed problems.",
+    "accessNote": "Sign-in may be needed to submit and save challenge progress.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://www.hackerrank.com/domains/python"
+    ]
+  },
+  {
+    "id": "google-mlcc",
+    "title": "Machine Learning Crash Course",
+    "provider": "Google",
+    "topic": "Machine Learning",
+    "url": "https://developers.google.com/machine-learning/crash-course",
+    "format": "Reading + visuals + exercises",
+    "level": "Beginner",
+    "access": "Free",
+    "textFriendly": true,
+    "description": "Modular explanations and exercises for regression, classification, data, and model evaluation.",
+    "startWith": "Study classification metrics, overfitting, and dataset splits; explain each concept in your own words.",
+    "accessNote": "Public learning material. Some exercises use a notebook environment.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://developers.google.com/machine-learning/crash-course"
+    ]
+  },
+  {
+    "id": "kaggle-intro-ml",
+    "title": "Intro to Machine Learning",
+    "provider": "Kaggle",
+    "topic": "Machine Learning",
+    "url": "https://www.kaggle.com/learn/intro-to-machine-learning",
+    "format": "Short lessons + notebooks",
+    "level": "Beginner",
+    "access": "Free",
+    "textFriendly": true,
+    "description": "An applied introduction to building and validating a first machine-learning model.",
+    "startWith": "Work through model validation and underfitting/overfitting, then reproduce a notebook locally.",
+    "accessNote": "Kaggle Learn is free; an account may be required for interactive exercises.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://www.kaggle.com/learn/intro-to-machine-learning",
+      "https://www.kaggle.com/learn/intro-to-machine-learning/exercises"
+    ]
+  },
+  {
+    "id": "sklearn-mooc",
+    "title": "Machine Learning in Python",
+    "provider": "Inria / scikit-learn contributors",
+    "topic": "Machine Learning",
+    "url": "https://inria.github.io/scikit-learn-mooc/",
+    "format": "Written lessons + notebooks",
+    "level": "Beginner–intermediate",
+    "access": "Free",
+    "textFriendly": true,
+    "description": "A careful introduction to predictive pipelines, preprocessing, cross-validation, and interpreting results.",
+    "startWith": "Start with the predictive modeling pipeline and model evaluation. Keep preprocessing inside the training workflow.",
+    "accessNote": "Public lessons and notebooks. The hosted MOOC has optional enrollment for additional course features.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://inria.github.io/scikit-learn-mooc/"
+    ]
+  },
+  {
+    "id": "pytorch-basics",
+    "title": "Learn the Basics",
+    "provider": "PyTorch",
+    "topic": "Deep Learning",
+    "url": "https://docs.pytorch.org/tutorials/beginner/basics/intro.html",
+    "format": "Written tutorials + code",
+    "level": "Beginner",
+    "access": "Free",
+    "textFriendly": true,
+    "description": "Official tutorials following a complete workflow: tensors, datasets, models, autograd, and optimization.",
+    "startWith": "Follow tensors, autograd, and the optimization loop. Rewrite one tiny training loop without copying.",
+    "accessNote": "Tutorials are free. You can run examples locally or through supported notebook links.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://docs.pytorch.org/tutorials/beginner/basics/intro.html"
+    ]
+  },
+  {
+    "id": "dive-deep-learning",
+    "title": "Dive into Deep Learning",
+    "provider": "D2L authors",
+    "topic": "Deep Learning",
+    "url": "https://d2l.ai/",
+    "format": "Interactive textbook + notebooks",
+    "level": "Beginner–advanced",
+    "access": "Free online book",
+    "textFriendly": true,
+    "description": "A mathematical, code-based textbook covering neural networks, optimization, attention, and transformers.",
+    "startWith": "Read automatic differentiation and forward/backward propagation alongside the PyTorch examples.",
+    "accessNote": "Free online book and code. Local or cloud computing is needed to run exercises.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://d2l.ai/"
+    ]
+  },
+  {
+    "id": "fastai-book",
+    "title": "Deep Learning for Coders — Online Book",
+    "provider": "fast.ai",
+    "topic": "Deep Learning",
+    "url": "https://course.fast.ai/Resources/book.html",
+    "format": "Book + executable notebooks",
+    "level": "Intermediate",
+    "access": "Free online book",
+    "textFriendly": true,
+    "description": "The fast.ai book links its explanations to notebooks you can read and run.",
+    "startWith": "Begin with the MNIST basics chapter and compare its model-building approach with your PyTorch loop.",
+    "accessNote": "The online book is free; print editions and optional cloud compute may cost money.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://course.fast.ai/Resources/book.html"
+    ]
+  },
+  {
+    "id": "hf-llm",
+    "title": "LLM Course",
+    "provider": "Hugging Face",
+    "topic": "Generative AI & Agents",
+    "url": "https://huggingface.co/learn/llm-course/en/chapter1/1",
+    "format": "Written course + notebooks",
+    "level": "Intermediate",
+    "access": "Free",
+    "textFriendly": true,
+    "description": "Learn transformers, tokenizers, datasets, model inference, and fine-tuning through the Hugging Face ecosystem.",
+    "startWith": "Start with transformer architectures and tokenization before fine-tuning. Practise describing model types.",
+    "accessNote": "The course is free. Accounts or computing resources may be needed for hands-on activities.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://huggingface.co/learn/llm-course/en/chapter1/1"
+    ]
+  },
+  {
+    "id": "hf-agents",
+    "title": "AI Agents Course",
+    "provider": "Hugging Face",
+    "topic": "Generative AI & Agents",
+    "url": "https://huggingface.co/learn/agents-course/unit0/introduction",
+    "format": "Written course + projects",
+    "level": "Intermediate",
+    "access": "Free",
+    "textFriendly": true,
+    "description": "Agent foundations, tools, frameworks, agentic RAG, and evaluation with practical assignments.",
+    "startWith": "Review tools and agent fundamentals, then try the Agentic RAG unit for your Atlas AI project.",
+    "accessNote": "Course material is free. A free Hugging Face account supports hands-on activities; external compute/API usage can vary.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://huggingface.co/learn/agents-course/unit0/introduction"
+    ]
+  },
+  {
+    "id": "microsoft-genai",
+    "title": "Generative AI for Beginners",
+    "provider": "Microsoft",
+    "topic": "Generative AI & Agents",
+    "url": "https://github.com/microsoft/generative-ai-for-beginners",
+    "format": "Written lessons + code",
+    "level": "Beginner–intermediate",
+    "access": "Free material",
+    "textFriendly": true,
+    "description": "Open learning material for building generative-AI applications with practical examples.",
+    "startWith": "Read the introductory and prompt-design material, then build a small grounded-answering experiment.",
+    "accessNote": "Lessons are free to read. Running examples can require provider accounts and incur model/API charges.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://github.com/microsoft/generative-ai-for-beginners"
+    ]
+  },
+  {
+    "id": "langchain-academy",
+    "title": "Introduction to LangGraph — Python",
+    "provider": "LangChain Academy",
+    "topic": "Generative AI & Agents",
+    "url": "https://academy.langchain.com/courses/intro-to-langgraph",
+    "format": "Videos + transcripts + notebooks",
+    "level": "Intermediate",
+    "access": "Free course",
+    "textFriendly": false,
+    "description": "Learn graph-based agent workflows, state, memory, and human-in-the-loop patterns.",
+    "startWith": "Begin with simple graphs, state schemas, and reducers. Use the transcripts and notebooks if you prefer reading.",
+    "accessNote": "The course is free; registration may be required. Model calls and optional hosted services can have separate costs.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://academy.langchain.com/courses/intro-to-langgraph",
+      "https://academy.langchain.com/"
+    ]
+  },
+  {
+    "id": "sqlbolt",
+    "title": "Interactive SQL Lessons",
+    "provider": "SQLBolt",
+    "topic": "Backend & SQL",
+    "url": "https://sqlbolt.com/",
+    "format": "Written lessons + browser exercises",
+    "level": "Beginner",
+    "access": "Free lessons",
+    "textFriendly": true,
+    "description": "Short interactive lessons for SELECT, filtering, joins, aggregation, and data modification.",
+    "startWith": "Practise JOINs and GROUP BY, then explain how a query maps to your booking or complaint database.",
+    "accessNote": "Public lessons and in-browser exercises.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://sqlbolt.com/"
+    ]
+  },
+  {
+    "id": "fastapi-guide",
+    "title": "FastAPI Tutorial — User Guide",
+    "provider": "FastAPI",
+    "topic": "Backend & SQL",
+    "url": "https://fastapi.tiangolo.com/tutorial/",
+    "format": "Written docs + code",
+    "level": "Beginner–intermediate",
+    "access": "Free docs",
+    "textFriendly": true,
+    "description": "Official examples for request validation, response codes, authentication, databases, and testing.",
+    "startWith": "Build a tiny complaint endpoint with validation and correct HTTP status codes, then add tests.",
+    "accessNote": "Documentation is free. Run the sample API locally with Codex or Claude Code.",
+    "checkedAt": "2026-11-15",
+    "sources": [
+      "https://fastapi.tiangolo.com/tutorial/"
+    ]
+  }
+]
