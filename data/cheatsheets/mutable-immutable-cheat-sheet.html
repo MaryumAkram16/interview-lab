@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mutable vs Immutable — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #2d1b4e; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #c9a7ff; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .header-sub { font-size: 13px; color: #e0ccff; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #c9a7ff; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #2d1b4e; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.green { background: #1a3d1a; }
+  .section-title.blue  { background: #0d2b5e; }
+  .section-title.orange{ background: #7a3500; }
+  .section-title.teal  { background: #0d4d40; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #2d1b4e; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8f4ff; }
+  .box-green { background:#e8f5e9; border-left:3px solid #2e7d32; padding:7px 10px; margin:6px 0; border-radius:0 4px 4px 0; font-size:10.5px; color:#1b5e20; }
+  .box-green strong { color:#1b5e20; font-size:10px; display:block; margin-bottom:2px; }
+  .box-red { background:#fdecea; border-left:3px solid #c62828; padding:7px 10px; margin:6px 0; border-radius:0 4px 4px 0; font-size:10.5px; color:#7f0000; }
+  .box-red strong { color:#b71c1c; font-size:10px; display:block; margin-bottom:2px; }
+  .box-blue { background:#e3f2fd; border-left:3px solid #1565c0; padding:7px 10px; margin:6px 0; border-radius:0 4px 4px 0; font-size:10.5px; color:#0d47a1; }
+  .box-blue strong { color:#0d47a1; font-size:10px; display:block; margin-bottom:2px; }
+  .qa-box { background:#fffde7; border:1.5px solid #f9a825; border-radius:5px; padding:8px 10px; margin:8px 0; font-size:10.5px; }
+  .qa-box .q { font-weight:700; color:#e65100; margin-bottom:4px; }
+  .qa-box .a { color:#333; line-height:1.5; }
+  .analogy { background:#f3e5f5; border-left:3px solid #7b1fa2; padding:7px 10px; margin:6px 0; border-radius:0 4px 4px 0; font-size:10.5px; color:#4a148c; font-style:italic; }
+  .footer { grid-column:1/-1; background:#2d1b4e; color:#c9a7ff; font-size:10px; text-align:center; padding:8px; font-weight:600; letter-spacing:0.5px; }
+  .hl { background:#e8eaff; padding:1px 4px; border-radius:3px; font-family:'JetBrains Mono',monospace; font-size:9.5px; color:#3730a3; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:6px 0; }
+  .card-mut { background:#fdecea; border:1px solid #ef9a9a; border-radius:4px; padding:7px; font-size:10.5px; }
+  .card-imm { background:#e8f5e9; border:1px solid #a5d6a7; border-radius:4px; padding:7px; font-size:10.5px; }
+  .card-label { font-weight:800; font-size:10px; margin-bottom:4px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Python Internals · Cheat Sheet #5</div>
+      <div class="header-title">Mutable vs Immutable</div>
+      <div class="header-sub">Memory Model · Why Lists Can't Be Dict Keys · Hashing Connection · id()</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">The Core Concept</div>
+    <div class="analogy">
+      🪨 Immutable = carved in stone. Once created, the value can never change — Python creates a brand new object instead. 🧱 Mutable = wet clay. You can reshape it in place. The object stays at the same memory address while its contents change.
+    </div>
+
+    <div class="two-col">
+      <div class="card-imm">
+        <div class="card-label" style="color:#1b5e20">✅ IMMUTABLE</div>
+        int, float, bool<br>str, bytes<br>tuple<br>frozenset<br><br>
+        <em>Cannot change after creation.</em>
+      </div>
+      <div class="card-mut">
+        <div class="card-label" style="color:#b71c1c">🔄 MUTABLE</div>
+        list<br>dict<br>set<br>bytearray<br>custom objects<br>
+        <em>Can change in place.</em>
+      </div>
+    </div>
+
+    <div class="sub-title">Proof with id() — Memory Address</div>
+    <pre><span class="cm"># id() returns the memory address of an object</span>
+
+<span class="cm"># IMMUTABLE — new object created on change</span>
+x = <span class="st">"hello"</span>
+<span class="kw">print</span>(<span class="fn">id</span>(x))         <span class="cm"># e.g. 140234567</span>
+x = x + <span class="st">" world"</span>
+<span class="kw">print</span>(<span class="fn">id</span>(x))         <span class="cm"># DIFFERENT address!</span>
+<span class="cm"># "hello" still exists in memory — x just</span>
+<span class="cm"># points to a new string object</span>
+
+<span class="cm"># MUTABLE — same object modified in place</span>
+my_list = [<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>]
+<span class="kw">print</span>(<span class="fn">id</span>(my_list))    <span class="cm"># e.g. 140298765</span>
+my_list.<span class="fn">append</span>(<span class="nm">4</span>)
+<span class="kw">print</span>(<span class="fn">id</span>(my_list))    <span class="cm"># SAME address!</span>
+<span class="cm"># Same object, just contents changed</span></pre>
+
+    <div class="sub-title">Integer Caching — Python Trick</div>
+    <pre><span class="cm"># Python caches small integers (-5 to 256)</span>
+a = <span class="nm">100</span>;  b = <span class="nm">100</span>
+<span class="kw">print</span>(a <span class="kw">is</span> b)   <span class="cm"># True — same object!</span>
+
+a = <span class="nm">1000</span>; b = <span class="nm">1000</span>
+<span class="kw">print</span>(a <span class="kw">is</span> b)   <span class="cm"># False — different objects</span>
+
+<span class="cm"># Use == for value, 'is' for identity</span>
+<span class="cm"># is checks id(), == checks value</span></pre>
+
+    <div class="box-blue">
+      <strong>💡 == vs is — always confuse people in interviews</strong>
+      <span class="hl">==</span> checks if two objects have the same <em>value</em>.<br>
+      <span class="hl">is</span> checks if two variables point to the <em>same object in memory</em>.<br>
+      Always use <span class="hl">==</span> for value comparison. Only use <span class="hl">is</span> for <span class="hl">None</span> checks.
+    </div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title green">Why Lists Can't Be Dict Keys</div>
+    <div class="analogy">
+      🔑 Dict keys must be hashable. To hash something, Python needs its value to stay constant — because the hash is used as the index. A list can change at any time, so its hash would change too, and Python would lose the value stored at that index forever.
+    </div>
+
+    <pre><span class="cm"># ❌ Lists are unhashable</span>
+my_list = [<span class="nm">1</span>, <span class="nm">2</span>]
+<span class="kw">try</span>:
+    <span class="kw">print</span>(<span class="fn">hash</span>(my_list))
+<span class="kw">except</span> <span class="fn">TypeError</span> <span class="kw">as</span> e:
+    <span class="kw">print</span>(<span class="fn">f</span><span class="st">"Error: {e}"</span>) <span class="cm"># Error: unhashable type: 'list'</span>
+
+<span class="cm"># ✅ Tuples are hashable (if contents are immutable)</span>
+my_tuple = (<span class="nm">1</span>, <span class="nm">2</span>)
+<span class="kw">print</span>(<span class="fn">hash</span>(my_tuple)) <span class="cm"># Prints an integer hash value</span>
+
+<span class="cm"># ❌ List as dict key — TypeError!</span>
+my_dict = {}
+my_dict[[<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>]] = <span class="st">"value"</span>
+<span class="cm"># TypeError: unhashable type: 'list'</span>
+
+<span class="cm"># ✅ Tuple as dict key — works!</span>
+my_dict[(<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>)] = <span class="st">"value"</span>
+<span class="kw">print</span>(my_dict[(<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>)])  <span class="cm"># "value"</span>
+
+<span class="cm"># ✅ Frozenset as dict key — works!</span>
+my_dict[<span class="fn">frozenset</span>([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>])] = <span class="st">"value"</span>
+
+<span class="cm"># Rule: only hashable (immutable) types</span>
+<span class="cm"># can be dict keys or set members</span></pre>
+
+    <div class="sub-title">The Hashability Rule</div>
+    <table>
+      <tr><th>Type</th><th>Hashable?</th><th>Dict Key?</th><th>Set Member?</th></tr>
+      <tr><td>int, float</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td>str</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td>tuple</td><td>✅ (if contents immutable)</td><td>✅</td><td>✅</td></tr>
+      <tr><td>frozenset</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td>list</td><td>❌</td><td>❌</td><td>❌</td></tr>
+      <tr><td>dict</td><td>❌</td><td>❌</td><td>❌</td></tr>
+      <tr><td>set</td><td>❌</td><td>❌</td><td>❌</td></tr>
+    </table>
+
+    <div class="sub-title">The Dangerous Mutability Trap</div>
+    <pre><span class="cm"># ❌ Classic bug — mutable default argument</span>
+<span class="kw">def</span> <span class="fn">add_item</span>(item, lst=[]):  <span class="cm"># DON'T DO THIS</span>
+    lst.<span class="fn">append</span>(item)
+    <span class="kw">return</span> lst
+
+<span class="kw">print</span>(<span class="fn">add_item</span>(<span class="nm">1</span>))  <span class="cm"># [1]</span>
+<span class="kw">print</span>(<span class="fn">add_item</span>(<span class="nm">2</span>))  <span class="cm"># [1, 2] ← BUG!</span>
+<span class="cm"># Same list object reused every call!</span>
+
+<span class="cm"># ✅ Fix — use None as default</span>
+<span class="kw">def</span> <span class="fn">add_item</span>(item, lst=<span class="nm">None</span>):
+    <span class="kw">if</span> lst <span class="kw">is</span> <span class="nm">None</span>:
+        lst = []
+    lst.<span class="fn">append</span>(item)
+    <span class="kw">return</span> lst</pre>
+
+    <div class="box-red">
+      <strong>⚠️ Mutable default arguments — a classic interview trap</strong>
+      Default arguments are evaluated ONCE when the function is defined, not each time it's called. A mutable default like <span class="hl">lst=[]</span> is shared across all calls. Always use <span class="hl">None</span> as default for mutable types.
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title blue">Copying — Shallow vs Deep</div>
+    <div class="analogy">
+      📋 Shallow copy = copy the folder but not the files inside. Deep copy = copy everything, files included. Matters when your list contains other lists.
+    </div>
+
+    <pre><span class="kw">import</span> copy
+
+original = [[<span class="nm">1</span>, <span class="nm">2</span>], [<span class="nm">3</span>, <span class="nm">4</span>]]
+
+<span class="cm"># Assignment — same object, not a copy!</span>
+ref = original
+ref[<span class="nm">0</span>].<span class="fn">append</span>(<span class="nm">99</span>)
+<span class="kw">print</span>(original)   <span class="cm"># [[1,2,99],[3,4]] ← changed!</span>
+
+<span class="cm"># Shallow copy — new outer list,</span>
+<span class="cm"># but inner lists still shared</span>
+shallow = original.<span class="fn">copy</span>()   <span class="cm"># or list(original)</span>
+shallow[<span class="nm">0</span>].<span class="fn">append</span>(<span class="nm">88</span>)
+<span class="kw">print</span>(original)   <span class="cm"># inner list still affected!</span>
+
+<span class="cm"># Deep copy — fully independent</span>
+deep = copy.<span class="fn">deepcopy</span>(original)
+deep[<span class="nm">0</span>].<span class="fn">append</span>(<span class="nm">77</span>)
+<span class="kw">print</span>(original)   <span class="cm"># not affected ✅</span></pre>
+
+    <div class="sub-title">Pass by Assignment — Functions</div>
+    <pre><span class="cm"># Immutable — original not changed</span>
+<span class="kw">def</span> <span class="fn">change_int</span>(x):
+    x = <span class="nm">100</span>
+
+n = <span class="nm">5</span>
+<span class="fn">change_int</span>(n)
+<span class="kw">print</span>(n)  <span class="cm"># still 5 — int is immutable</span>
+
+<span class="cm"># Mutable — original IS changed</span>
+<span class="kw">def</span> <span class="fn">change_list</span>(lst):
+    lst.<span class="fn">append</span>(<span class="nm">99</span>)
+
+my_list = [<span class="nm">1</span>, <span class="nm">2</span>]
+<span class="fn">change_list</span>(my_list)
+<span class="kw">print</span>(my_list)  <span class="cm"># [1, 2, 99] — list mutated!</span></pre>
+
+    <div class="section-title teal" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between mutable and immutable in Python?"</div>
+      <div class="a">Mutable objects like lists and dicts can be changed in place — the same memory address holds updated contents. Immutable objects like strings and tuples cannot change — any "modification" creates a brand new object at a new address. You can verify this with id(). This distinction matters for dict keys, function arguments, and copying behaviour.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "Why can't you use a list as a dictionary key?"</div>
+      <div class="a">Dictionary keys must be hashable — Python hashes the key to find its storage slot. Hashing requires the value to stay constant. Lists are mutable, so their value can change after insertion, which would corrupt the dictionary's internal structure. Use a tuple instead — it's immutable and hashable.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Immutable = new object on change (str, int, tuple). Mutable = same object modified (list, dict, set). Only immutable types are hashable → dict keys + set members. Mutable default arguments in functions are a common bug — always use None.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #5 of 25 · Mutable vs Immutable · Python Internals · Maryum Akram · Next: Sheet #6 — Data Structures</div>
+</div>
+</body>
+</html>

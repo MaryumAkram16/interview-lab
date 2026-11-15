@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rate Limiting + Fallback Strategies — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #1a0033; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #ce93d8; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #e1bee7; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #ce93d8; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #1a0033; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue  { background: #0d2b5e; }
+  .section-title.green { background: #1a3d1a; }
+  .section-title.teal  { background: #003d3d; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #1a0033; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #fdf4ff; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .box-purple{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c}
+  .box-purple strong{color:#4a148c;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#1a0033;color:#ce93d8;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">API Reliability · Cheat Sheet #11</div>
+      <div class="header-title">Rate Limiting + Fallback Strategies</div>
+      <div class="header-sub">Token Bucket · Sliding Window · Cached Fallback · Provider Switching · Graceful Degradation</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Rate Limiting Concepts</div>
+    <div class="analogy">🚰 Rate limiting is a tap on a water pipe. The API provider sets a flow rate — you can only pull so many requests per second. If you exceed it, the tap closes (429). Your job is to respect the flow rate and not force the tap open.</div>
+
+    <div class="sub-title">Common Rate Limit Algorithms</div>
+    <table>
+      <tr><th>Algorithm</th><th>How It Works</th><th>Used By</th></tr>
+      <tr><td><strong>Token Bucket</strong></td><td>Tokens refill at fixed rate. Each request uses one token. Burst allowed when full.</td><td>OpenAI, AWS</td></tr>
+      <tr><td><strong>Fixed Window</strong></td><td>X requests per minute. Counter resets every 60s.</td><td>Simple APIs</td></tr>
+      <tr><td><strong>Sliding Window</strong></td><td>X requests per any rolling 60s window. No reset spike.</td><td>Stripe, GitHub</td></tr>
+      <tr><td><strong>Leaky Bucket</strong></td><td>Requests queue up and process at a fixed rate. Smooth output.</td><td>Network devices</td></tr>
+    </table>
+
+    <div class="sub-title">Client-Side Rate Limiter</div>
+    <pre><span class="kw">import</span> time
+
+<span class="kw">class</span> <span class="fn">RateLimiter</span>:
+    <span class="cm">"""Token bucket — limits calls per second"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="op">self</span>, calls_per_second):
+        <span class="op">self</span>.rate  = calls_per_second
+        <span class="op">self</span>.tokens = calls_per_second
+        <span class="op">self</span>.last_check = time.<span class="fn">time</span>()
+
+    <span class="kw">def</span> <span class="fn">acquire</span>(<span class="op">self</span>):
+        now = time.<span class="fn">time</span>()
+        elapsed = now - <span class="op">self</span>.last_check
+        <span class="op">self</span>.last_check = now
+
+        <span class="cm"># Refill tokens based on elapsed time</span>
+        <span class="op">self</span>.tokens = <span class="fn">min</span>(
+            <span class="op">self</span>.rate,
+            <span class="op">self</span>.tokens + elapsed * <span class="op">self</span>.rate
+        )
+        <span class="kw">if</span> <span class="op">self</span>.tokens >= <span class="nm">1</span>:
+            <span class="op">self</span>.tokens -= <span class="nm">1</span>
+            <span class="kw">return</span> <span class="nm">True</span>
+
+        <span class="cm"># Not enough tokens — wait</span>
+        wait = (<span class="nm">1</span> - <span class="op">self</span>.tokens) / <span class="op">self</span>.rate
+        time.<span class="fn">sleep</span>(wait)
+        <span class="op">self</span>.tokens = <span class="nm">0</span>
+        <span class="kw">return</span> <span class="nm">True</span>
+
+<span class="cm"># Use it — max 5 calls per second</span>
+limiter = <span class="fn">RateLimiter</span>(calls_per_second=<span class="nm">5</span>)
+
+<span class="kw">for</span> item <span class="kw">in</span> batch_of_items:
+    limiter.<span class="fn">acquire</span>()   <span class="cm"># wait if needed</span>
+    <span class="fn">call_openai</span>(item)</pre>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Fallback Strategies</div>
+    <div class="analogy">🛟 A fallback is your life jacket when the boat sinks. When the primary API fails, you don't crash the whole system — you gracefully switch to a backup: cached data, a different provider, or a safe default response.</div>
+
+    <div class="sub-title">Strategy 1 — Cached Response Fallback</div>
+    <pre><span class="kw">import</span> requests
+
+cache = {}   <span class="cm"># In production: Redis</span>
+
+<span class="kw">def</span> <span class="fn">get_with_cache_fallback</span>(url, cache_key):
+    <span class="kw">try</span>:
+        resp = requests.<span class="fn">get</span>(url, timeout=<span class="nm">5</span>)
+        resp.<span class="fn">raise_for_status</span>()
+        data = resp.<span class="fn">json</span>()
+
+        <span class="cm"># Store fresh result in cache</span>
+        cache[cache_key] = data
+        <span class="kw">return</span> data
+
+    <span class="kw">except</span> <span class="fn">Exception</span> <span class="kw">as</span> e:
+        <span class="cm"># API failed — try cache</span>
+        <span class="kw">if</span> cache_key <span class="kw">in</span> cache:
+            <span class="kw">print</span>(<span class="fn">f</span><span class="st">"API failed, returning cached data"</span>)
+            <span class="kw">return</span> cache[cache_key]
+
+        <span class="cm"># No cache either — raise</span>
+        <span class="kw">raise</span> <span class="fn">RuntimeError</span>(<span class="st">"API + cache both failed"</span>)</pre>
+
+    <div class="sub-title">Strategy 2 — Provider Switching (AI Fallback)</div>
+    <pre><span class="kw">import</span> openai, google.generativeai <span class="kw">as</span> genai
+
+<span class="kw">def</span> <span class="fn">llm_with_fallback</span>(prompt):
+    <span class="cm"># Try OpenAI GPT-4o first</span>
+    <span class="kw">try</span>:
+        client = openai.<span class="fn">OpenAI</span>()
+        resp = client.chat.completions.<span class="fn">create</span>(
+            model=<span class="st">"gpt-4o"</span>,
+            messages=[{<span class="st">"role"</span>:<span class="st">"user"</span>,<span class="st">"content"</span>:prompt}]
+        )
+        <span class="kw">return</span> resp.choices[<span class="nm">0</span>].message.content
+
+    <span class="kw">except</span> <span class="fn">Exception</span> <span class="kw">as</span> e:
+        <span class="kw">print</span>(<span class="fn">f</span><span class="st">"GPT-4o failed: {e}. Trying Gemini..."</span>)
+
+    <span class="cm"># Fallback to Google Gemini</span>
+    <span class="kw">try</span>:
+        model = genai.<span class="fn">GenerativeModel</span>(<span class="st">"gemini-1.5-pro"</span>)
+        resp  = model.<span class="fn">generate_content</span>(prompt)
+        <span class="kw">return</span> resp.text
+
+    <span class="kw">except</span> <span class="fn">Exception</span> <span class="kw">as</span> e:
+        <span class="kw">print</span>(<span class="fn">f</span><span class="st">"Gemini also failed: {e}"</span>)
+
+    <span class="cm"># Both failed — return safe default</span>
+    <span class="kw">return</span> <span class="st">"I'm unable to process your request right now."</span></pre>
+
+    <div class="box-purple">
+      <strong>🔗 This is exactly your MediLens architecture</strong>
+      MediLens uses both Gemini and can fall back to OpenAI. This pattern is production-grade and you can speak to it directly in your interview: "In MediLens I implemented provider fallback — if Gemini returns a 503, the system retries with GPT-4o before showing an error to the patient."
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Graceful Degradation</div>
+    <div class="analogy">✈️ Graceful degradation is like a plane losing one engine but still flying. The system keeps working at reduced capacity instead of crashing completely. Show the user something useful even when parts are broken.</div>
+
+    <div class="sub-title">Strategy 3 — Default Safe Response</div>
+    <pre><span class="kw">def</span> <span class="fn">get_ai_triage</span>(patient_symptoms):
+    <span class="kw">try</span>:
+        <span class="kw">return</span> <span class="fn">call_gemini_triage</span>(patient_symptoms)
+
+    <span class="kw">except</span> <span class="fn">Exception</span>:
+        <span class="cm"># AI unavailable — safe fallback message</span>
+        <span class="cm"># Don't expose error to patient</span>
+        <span class="kw">return</span> {
+            <span class="st">"triage_level"</span>: <span class="st">"unknown"</span>,
+            <span class="st">"message"</span>: (
+                <span class="st">"Our AI system is temporarily unavailable. "</span>
+                <span class="st">"A staff member will assist you shortly."</span>
+            ),
+            <span class="st">"action"</span>: <span class="st">"escalate_to_human"</span>
+        }</pre>
+
+    <div class="sub-title">Strategy 4 — Slack Alert on Failure</div>
+    <pre><span class="kw">import</span> requests
+
+<span class="kw">def</span> <span class="fn">alert_slack</span>(message, webhook_url):
+    <span class="kw">try</span>:
+        requests.<span class="fn">post</span>(
+            webhook_url,
+            json={<span class="st">"text"</span>: <span class="fn">f</span><span class="st">"🚨 ALERT: {message}"</span>},
+            timeout=<span class="nm">5</span>
+        )
+    <span class="kw">except</span>:
+        <span class="kw">pass</span>  <span class="cm"># Don't let alert failure crash app</span>
+
+<span class="kw">def</span> <span class="fn">resilient_pipeline</span>(data):
+    <span class="kw">try</span>:
+        <span class="kw">return</span> <span class="fn">process_with_ai</span>(data)
+    <span class="kw">except</span> <span class="fn">Exception</span> <span class="kw">as</span> e:
+        <span class="fn">alert_slack</span>(
+            <span class="fn">f</span><span class="st">"Pipeline failed: {e}"</span>,
+            SLACK_WEBHOOK_URL
+        )
+        <span class="kw">return</span> <span class="fn">safe_default_response</span>()</pre>
+
+    <div class="sub-title">Fallback Strategy Decision Tree</div>
+    <table>
+      <tr><th>Scenario</th><th>Best Fallback</th></tr>
+      <tr><td>AI model API down</td><td>Switch provider (GPT→Gemini)</td></tr>
+      <tr><td>Data API down</td><td>Return cached last-known value</td></tr>
+      <tr><td>All providers down</td><td>Safe default + human escalation</td></tr>
+      <tr><td>Rate limited</td><td>Queue + retry after delay</td></tr>
+      <tr><td>Timeout</td><td>Retry with backoff, then fallback</td></tr>
+    </table>
+
+    <div class="section-title teal" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "How do you handle rate limiting in a production AI pipeline?"</div>
+      <div class="a">Three layers. First, client-side rate limiting — a token bucket that spaces out requests to stay under the API's limit before hitting 429. Second, when I do get a 429, I read the Retry-After header and sleep exactly that long before retrying. Third, for batch processing I queue jobs and process at a controlled rate. In my n8n workflows I add deliberate delays between AI calls to avoid rate limits entirely.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is graceful degradation? Give an example from your work."</div>
+      <div class="a">Graceful degradation means the system keeps working at reduced functionality when a component fails, instead of crashing entirely. In MediLens, if the Gemini triage AI is unavailable, the system doesn't show an error to the patient — it returns a safe default message and escalates to a human staff member. The workflow keeps running, the patient gets helped, and Slack gets an alert so the team can investigate.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Rate limiting: respect API quotas with token bucket + Retry-After header. Fallback strategies: cached data → provider switch → safe default → human escalation. Never let one failed API call crash your whole pipeline. Alert Slack silently, always return something useful to the user.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #11 of 25 · Rate Limiting + Fallback · API Reliability Complete ✅ · Maryum Akram · Next: Sheet #12 — Supervised vs Unsupervised Learning</div>
+</div>
+</body>
+</html>

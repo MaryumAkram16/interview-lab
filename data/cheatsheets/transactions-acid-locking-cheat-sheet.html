@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transactions, ACID, Row-Level Locking — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #0a2a00; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #76ff03; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #ccff90; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #76ff03; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #0a2a00; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.purple { background: #1a0a33; }
+  .section-title.orange { background: #7a3500; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #0a2a00; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f4fff0; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#0a2a00;color:#76ff03;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Databases & SQL · Cheat Sheet #23</div>
+      <div class="header-title">Transactions, ACID + Row-Level Locking</div>
+      <div class="header-sub">BEGIN/COMMIT/ROLLBACK · ACID Properties · SELECT FOR UPDATE · Deadlocks</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Transactions</div>
+    <div class="analogy">🏦 A transaction is like a bank transfer. Moving £500 from Account A to Account B involves two steps: debit A, credit B. If the power goes out after the debit but before the credit, you've lost £500. A transaction wraps both steps — either both succeed, or neither happens.</div>
+
+    <p>A <strong>transaction</strong> groups multiple SQL operations into one atomic unit — all succeed together or all fail together.</p>
+
+    <pre><span class="cm">-- Basic transaction structure</span>
+<span class="kw">BEGIN</span>;           <span class="cm">-- start transaction</span>
+
+<span class="kw">UPDATE</span> accounts
+   <span class="kw">SET</span> balance = balance - <span class="nm">500</span>
+ <span class="kw">WHERE</span> id = <span class="st">'account_a'</span>;
+
+<span class="kw">UPDATE</span> accounts
+   <span class="kw">SET</span> balance = balance + <span class="nm">500</span>
+ <span class="kw">WHERE</span> id = <span class="st">'account_b'</span>;
+
+<span class="kw">COMMIT</span>;          <span class="cm">-- make permanent</span>
+<span class="cm">-- OR: ROLLBACK; to undo everything</span></pre>
+
+    <div class="sub-title">ACID Properties</div>
+    <table>
+      <tr><th>Letter</th><th>Property</th><th>Means</th><th>Prevents</th></tr>
+      <tr><td><strong>A</strong></td><td>Atomic</td><td>All or nothing — no partial writes</td><td>Partial failures</td></tr>
+      <tr><td><strong>C</strong></td><td>Consistent</td><td>DB rules always upheld before + after</td><td>Invalid data states</td></tr>
+      <tr><td><strong>I</strong></td><td>Isolated</td><td>Concurrent transactions don't see each other mid-flight</td><td>Race conditions</td></tr>
+      <tr><td><strong>D</strong></td><td>Durable</td><td>Committed data survives crashes</td><td>Data loss</td></tr>
+    </table>
+
+    <div class="sub-title">ROLLBACK on Error</div>
+    <pre><span class="cm">-- Always handle errors with rollback</span>
+<span class="kw">BEGIN</span>;
+
+<span class="kw">UPDATE</span> appointments
+   <span class="kw">SET</span> status = <span class="st">'confirmed'</span>
+ <span class="kw">WHERE</span> id = <span class="nm">123</span>;
+
+<span class="kw">INSERT INTO</span> notifications (patient_id, message)
+<span class="kw">VALUES</span> (<span class="nm">456</span>, <span class="st">'Your appointment is confirmed'</span>);
+
+<span class="cm">-- If any step fails, undo everything</span>
+<span class="cm">-- ROLLBACK; ensures no partial update</span>
+
+<span class="kw">COMMIT</span>;</pre>
+
+    <div class="box-red">
+      <strong>⚠️ Without transactions — the danger</strong>
+      If you UPDATE the appointment status but the INSERT into notifications crashes halfway, you have a confirmed appointment with no notification sent. The patient never shows up. Transactions prevent this inconsistent state.
+    </div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Row-Level Locking</div>
+    <div class="analogy">🔒 SELECT FOR UPDATE puts a padlock on a row while you read it. Anyone else trying to read or write that row with FOR UPDATE must wait until you commit. This prevents two transactions from simultaneously deciding they can both take the last appointment slot.</div>
+
+    <div class="sub-title">SELECT FOR UPDATE — Prevent Race Conditions</div>
+    <pre><span class="cm">-- Book the last available seat safely</span>
+<span class="kw">BEGIN</span>;
+
+<span class="cm">-- Lock this row — no one else can touch it</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> appointment_slots
+ <span class="kw">WHERE</span> id = <span class="nm">42</span>
+   <span class="kw">AND</span> available = <span class="nm">TRUE</span>
+   <span class="kw">FOR UPDATE</span>;  <span class="cm">-- row lock acquired here</span>
+
+<span class="cm">-- Now safe to update — no race condition</span>
+<span class="kw">UPDATE</span> appointment_slots
+   <span class="kw">SET</span> available = <span class="nm">FALSE</span>,
+       patient_id = <span class="nm">789</span>
+ <span class="kw">WHERE</span> id = <span class="nm">42</span>;
+
+<span class="kw">COMMIT</span>;  <span class="cm">-- lock released here</span></pre>
+
+    <div class="sub-title">SKIP LOCKED — Non-Blocking Queue</div>
+    <pre><span class="cm">-- Process jobs from a queue without blocking</span>
+<span class="cm">-- Multiple workers can run in parallel</span>
+<span class="kw">BEGIN</span>;
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> job_queue
+ <span class="kw">WHERE</span> status = <span class="st">'pending'</span>
+ <span class="kw">LIMIT</span> <span class="nm">1</span>
+   <span class="kw">FOR UPDATE</span>
+   <span class="kw">SKIP LOCKED</span>;  <span class="cm">-- skip rows locked by other workers</span>
+
+<span class="cm">-- This worker gets a row no other worker is processing</span>
+<span class="kw">UPDATE</span> job_queue <span class="kw">SET</span> status = <span class="st">'processing'</span>
+ <span class="kw">WHERE</span> id = [fetched_id];
+
+<span class="kw">COMMIT</span>;</pre>
+
+    <div class="sub-title">Lock Modes</div>
+    <table>
+      <tr><th>Lock</th><th>Blocks</th><th>Use</th></tr>
+      <tr><td><span class="hl">FOR UPDATE</span></td><td>Other writers + FOR UPDATE readers</td><td>Read-then-write pattern</td></tr>
+      <tr><td><span class="hl">FOR SHARE</span></td><td>Writers only, not other readers</td><td>Read-only concurrent access</td></tr>
+      <tr><td><span class="hl">FOR NO KEY UPDATE</span></td><td>Less strict than FOR UPDATE</td><td>FK-safe updates</td></tr>
+    </table>
+
+    <div class="box-blue">
+      <strong>💡 In your Supabase projects</strong>
+      When MediLens books appointments, two patients could click "Book" simultaneously. SELECT FOR UPDATE in the booking transaction ensures only one gets the slot. The other transaction waits, then sees the slot is gone and returns "no availability."
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title purple">Isolation Levels + Deadlocks</div>
+
+    <div class="sub-title">Transaction Isolation Levels</div>
+    <table>
+      <tr><th>Level</th><th>Dirty Read</th><th>Non-repeat Read</th><th>Phantom</th></tr>
+      <tr><td><strong>READ UNCOMMITTED</strong></td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td><strong>READ COMMITTED</strong></td><td>No</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td><strong>REPEATABLE READ</strong></td><td>No</td><td>No</td><td>Yes</td></tr>
+      <tr><td><strong>SERIALIZABLE</strong></td><td>No</td><td>No</td><td>No</td></tr>
+    </table>
+    <p>PostgreSQL default = <span class="hl">READ COMMITTED</span>. For financial systems use <span class="hl">SERIALIZABLE</span>.</p>
+
+    <div class="sub-title">Deadlocks — How They Happen + Fix</div>
+    <pre><span class="cm">-- DEADLOCK: Transaction A and B block each other</span>
+<span class="cm">-- T-A: locks row 1, then tries to lock row 2</span>
+<span class="cm">-- T-B: locks row 2, then tries to lock row 1</span>
+<span class="cm">-- Both wait forever → PostgreSQL kills one</span>
+
+<span class="cm">-- ✅ Fix: always lock rows in the same order</span>
+<span class="cm">-- Both transactions lock row 1 first, then row 2</span>
+<span class="cm">-- One waits, other completes — no deadlock</span>
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> resources
+ <span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="nm">1</span>, <span class="nm">2</span>)
+ <span class="kw">ORDER BY</span> id        <span class="cm">-- consistent order!</span>
+   <span class="kw">FOR UPDATE</span>;</pre>
+
+    <div class="section-title orange" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What are ACID properties?"</div>
+      <div class="a">ACID stands for Atomic, Consistent, Isolated, Durable. Atomic means all operations in a transaction succeed or all fail — no partial writes. Consistent means the database stays in a valid state before and after. Isolated means concurrent transactions don't see each other's intermediate states — preventing race conditions. Durable means committed data survives crashes. PostgreSQL and Supabase are fully ACID compliant.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is SELECT FOR UPDATE and when do you use it?"</div>
+      <div class="a">SELECT FOR UPDATE acquires a row-level lock when you read a row. Any other transaction trying to update that row — or lock it themselves — must wait until your transaction commits. I use it for the appointment booking flow in MediLens: read the available slot with FOR UPDATE, then update it to booked. Without it, two patients could simultaneously read the same slot as available and both book it, causing a double-booking.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Transaction = BEGIN + operations + COMMIT (or ROLLBACK). ACID = Atomic + Consistent + Isolated + Durable. SELECT FOR UPDATE = row lock for read-then-write safety. SKIP LOCKED = parallel queue workers. Deadlock fix = always acquire locks in the same order across all transactions.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #23 of 25 · Transactions + ACID · Databases & SQL · Maryum Akram · Next: Sheet #24 — SQL Joins + Indexes</div>
+</div>
+</body>
+</html>

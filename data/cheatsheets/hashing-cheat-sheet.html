@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hashing Cheat Sheet — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f7f7fb;
+    color: #1a1a2e;
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  .page {
+    width: 1120px;
+    margin: 0 auto;
+    background: white;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 0;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    grid-column: 1 / -1;
+    background: #1a1a2e;
+    color: white;
+    padding: 18px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .header-brand { font-size: 10px; color: #7c83fd; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .header-sub { font-size: 13px; color: #a0a8ff; font-weight: 600; }
+  .header-right { font-size: 10px; color: #666; text-align: right; line-height: 1.8; }
+  .header-right a { color: #7c83fd; text-decoration: none; }
+
+  /* ── COLUMNS ── */
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+
+  /* ── SECTION HEADER ── */
+  .section-title {
+    background: #1a1a2e;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    border-radius: 3px;
+  }
+
+  .section-title.purple { background: #4a4aaa; }
+  .section-title.teal   { background: #1a7a6e; }
+  .section-title.red    { background: #9b2335; }
+  .section-title.orange { background: #b35a00; }
+  .section-title.navy   { background: #0d2b5e; }
+
+  /* ── SUBSECTION ── */
+  .sub-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 10px 0 4px;
+    padding-bottom: 2px;
+    border-bottom: 1.5px solid #e0e0f0;
+  }
+
+  /* ── BODY TEXT ── */
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+
+  /* ── CODE BLOCK ── */
+  pre {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    margin: 6px 0;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+
+  .kw  { color: #ff7b72; } /* keywords */
+  .fn  { color: #d2a8ff; } /* functions */
+  .st  { color: #a5d6ff; } /* strings */
+  .cm  { color: #8b949e; font-style: italic; } /* comments */
+  .nm  { color: #79c0ff; } /* numbers/names */
+  .op  { color: #ffa657; } /* operators/special */
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #1a1a2e; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f4f4fb; }
+
+  /* ── CALLOUT BOXES ── */
+  .box-green {
+    background: #e8f5e9;
+    border-left: 3px solid #2e7d32;
+    padding: 7px 10px;
+    margin: 6px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10.5px;
+    color: #1b5e20;
+  }
+  .box-green strong { color: #1b5e20; font-size: 10px; display: block; margin-bottom: 2px; }
+
+  .box-red {
+    background: #fdecea;
+    border-left: 3px solid #c62828;
+    padding: 7px 10px;
+    margin: 6px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10.5px;
+    color: #7f0000;
+  }
+  .box-red strong { color: #b71c1c; font-size: 10px; display: block; margin-bottom: 2px; }
+
+  .box-blue {
+    background: #e3f2fd;
+    border-left: 3px solid #1565c0;
+    padding: 7px 10px;
+    margin: 6px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10.5px;
+    color: #0d47a1;
+  }
+  .box-blue strong { color: #0d47a1; font-size: 10px; display: block; margin-bottom: 2px; }
+
+  /* ── INTERVIEW Q BOX ── */
+  .qa-box {
+    background: #fffde7;
+    border: 1.5px solid #f9a825;
+    border-radius: 5px;
+    padding: 8px 10px;
+    margin: 8px 0;
+    font-size: 10.5px;
+  }
+  .qa-box .q { font-weight: 700; color: #e65100; margin-bottom: 4px; }
+  .qa-box .a { color: #333; line-height: 1.5; }
+
+  /* ── ANALOGY ── */
+  .analogy {
+    background: #f3e5f5;
+    border-left: 3px solid #7b1fa2;
+    padding: 7px 10px;
+    margin: 6px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10.5px;
+    color: #4a148c;
+    font-style: italic;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    grid-column: 1 / -1;
+    background: #1a1a2e;
+    color: #7c83fd;
+    font-size: 10px;
+    text-align: center;
+    padding: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid #e0e0f0; margin: 8px 0; }
+
+  /* ── SPAN HIGHLIGHT ── */
+  .hl { background: #e8eaff; padding: 1px 4px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #3730a3; }
+
+  .tag { display: inline-block; background: #1a1a2e; color: #7c83fd; font-size: 9px; padding: 1px 6px; border-radius: 10px; font-weight: 700; margin-right: 3px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <span class="header-brand">micro1 Retake Prep · Cheat Sheet #1</span>
+      <span class="header-title">Hashing</span>
+      <span class="header-sub">Hash Maps · Collision Handling · Time Complexity · Interview Answers</span>
+    </div>
+    <div class="header-right">
+      Maryum Akram<br>
+      AI Automation Engineer<br>
+      <a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a>
+    </div>
+  </div>
+
+  <!-- ══════════════ COLUMN 1 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title">What is Hashing?</div>
+
+    <div class="analogy">
+      📦 Analogy: A hash function is like a post office sorting machine. You give it a letter (your data), it spits out a slot number (the hash), and that is exactly where the letter goes. Finding it later is instant — no need to check every slot.
+    </div>
+
+    <p>A <strong>hash function</strong> takes an input (a key) and returns a fixed-size number called a <strong>hash code</strong>. That number is used as an index to store the value in an array called a <strong>hash table</strong>.</p>
+
+    <pre><span class="cm"># Python dict IS a hash map</span>
+phonebook = {}
+phonebook[<span class="st">"Maryum"</span>] = <span class="st">"0319-4236011"</span>
+<span class="cm"># Behind the scenes Python does:</span>
+<span class="cm"># hash("Maryum") → some number → index</span>
+<span class="cm"># value stored at that index instantly</span>
+
+<span class="kw">print</span>(phonebook[<span class="st">"Maryum"</span>]) <span class="cm"># O(1) lookup!</span></pre>
+
+    <div class="sub-title">How a Hash Function Works — Step by Step</div>
+    <table>
+      <tr><th>Step</th><th>What Happens</th></tr>
+      <tr><td><strong>1. Input</strong></td><td>Key = <span class="hl">"Maryum"</span></td></tr>
+      <tr><td><strong>2. Hash</strong></td><td><span class="hl">hash("Maryum")</span> → e.g. 482751</td></tr>
+      <tr><td><strong>3. Compress</strong></td><td>482751 % table_size → index 7</td></tr>
+      <tr><td><strong>4. Store</strong></td><td>Value goes into slot 7</td></tr>
+      <tr><td><strong>5. Retrieve</strong></td><td>Same key → same index → O(1) lookup</td></tr>
+    </table>
+
+    <div class="sub-title">Time Complexity</div>
+    <table>
+      <tr><th>Operation</th><th>Average</th><th>Worst Case</th></tr>
+      <tr><td>Insert</td><td>O(1)</td><td>O(n)</td></tr>
+      <tr><td>Search</td><td>O(1)</td><td>O(n)</td></tr>
+      <tr><td>Delete</td><td>O(1)</td><td>O(n)</td></tr>
+    </table>
+    <div class="box-red">
+      <strong>⚠️ When does worst case O(n) happen?</strong>
+      When all keys hash to the same slot — called a collision storm. A good hash function makes this almost impossible.
+    </div>
+
+    <div class="sub-title">What Makes a Good Hash Function?</div>
+    <p>Three rules every good hash function follows:</p>
+    <p><strong>1. Deterministic</strong> — same input always gives same output.</p>
+    <p><strong>2. Uniform distribution</strong> — spreads keys evenly across all slots. No clustering.</p>
+    <p><strong>3. Fast to compute</strong> — O(1) or close to it.</p>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is a hash function?"</div>
+      <div class="a">A hash function takes a key and returns a fixed number used as an array index. It lets us store and retrieve values in O(1) time instead of O(n). Python's dictionary uses hashing internally — every time you do dict[key], Python hashes the key and jumps directly to the right memory slot.</div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════ COLUMN 2 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title purple">Collision Handling</div>
+
+    <div class="analogy">
+      🚗 Analogy: Two cars booked the same parking spot. A collision happens when two different keys produce the same hash index. You need a strategy to handle it.
+    </div>
+
+    <p>A <strong>collision</strong> occurs when <span class="hl">hash(key1) == hash(key2)</span> but <span class="hl">key1 != key2</span>. Two main strategies to fix it:</p>
+
+    <div class="sub-title">Strategy 1 — Chaining (Linked List at each slot)</div>
+    <p>Each slot holds a list. When two keys collide, both go into the list at that slot.</p>
+
+    <pre><span class="cm"># Chaining — each bucket is a list</span>
+table = [[] <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">10</span>)]
+
+<span class="kw">def</span> <span class="fn">insert</span>(key, value):
+    index = <span class="fn">hash</span>(key) % <span class="nm">10</span>
+    <span class="cm"># Check if key already exists → update</span>
+    <span class="kw">for</span> i, (k, v) <span class="kw">in</span> <span class="fn">enumerate</span>(table[index]):
+        <span class="kw">if</span> k == key:
+            table[index][i] = (key, value)
+            <span class="kw">return</span>
+    <span class="cm"># Otherwise append new pair</span>
+    table[index].<span class="fn">append</span>((key, value))
+
+<span class="kw">def</span> <span class="fn">search</span>(key):
+    index = <span class="fn">hash</span>(key) % <span class="nm">10</span>
+    <span class="kw">for</span> k, v <span class="kw">in</span> table[index]:
+        <span class="kw">if</span> k == key: <span class="kw">return</span> v
+    <span class="kw">return</span> <span class="nm">None</span></pre>
+
+    <div class="box-green">
+      <strong>✅ Chaining Pros</strong>
+      Simple to implement. Works well even when load factor exceeds 1. Python's dict uses a variant of this.
+    </div>
+
+    <div class="sub-title">Strategy 2 — Open Addressing (Linear Probing)</div>
+    <p>No lists. If slot is taken, move to the next empty slot.</p>
+
+    <pre><span class="cm"># Linear Probing — find next empty slot</span>
+SIZE = <span class="nm">10</span>
+table = [<span class="nm">None</span>] * SIZE
+
+<span class="kw">def</span> <span class="fn">insert_probe</span>(key, value):
+    index = <span class="fn">hash</span>(key) % SIZE
+    <span class="kw">while</span> table[index] <span class="kw">is not</span> <span class="nm">None</span>:
+        <span class="kw">if</span> table[index][<span class="nm">0</span>] == key:  <span class="cm"># update</span>
+            <span class="kw">break</span>
+        index = (index + <span class="nm">1</span>) % SIZE  <span class="cm"># probe</span>
+    table[index] = (key, value)</pre>
+
+    <div class="box-red">
+      <strong>⚠️ Open Addressing weakness: Clustering</strong>
+      Keys bunch up near collision points, making future lookups slow. Quadratic probing or double hashing reduces this.
+    </div>
+
+    <div class="sub-title">Chaining vs Open Addressing</div>
+    <table>
+      <tr><th>Feature</th><th>Chaining</th><th>Open Addressing</th></tr>
+      <tr><td>Extra memory</td><td>Lists per slot</td><td>No extra</td></tr>
+      <tr><td>Load factor &gt; 1</td><td>✅ Works</td><td>❌ Breaks</td></tr>
+      <tr><td>Cache friendly</td><td>❌ Pointers</td><td>✅ Contiguous</td></tr>
+      <tr><td>Used in</td><td>Python dict</td><td>Java HashMap</td></tr>
+    </table>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What happens when two keys hash to the same index?"</div>
+      <div class="a">That is called a collision. There are two main ways to handle it. Chaining stores multiple key-value pairs in a list at the same slot — simple and handles high load. Open addressing finds the next empty slot instead — more cache-efficient but struggles when the table gets too full.</div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════ COLUMN 3 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title teal">Real-World Hash Applications</div>
+
+    <div class="sub-title">Load Factor — When to Resize</div>
+    <div class="analogy">
+      🏠 Analogy: Load factor is how full the house is. Too many people in too few rooms = collisions everywhere. Time to move to a bigger house (resize).
+    </div>
+    <p><strong>Load factor</strong> = number of entries ÷ number of slots</p>
+    <p>When load factor exceeds ~0.7, the hash table <strong>resizes</strong> (doubles in size) and <strong>rehashes</strong> all existing keys.</p>
+
+    <pre><span class="cm"># Python automatically manages this</span>
+<span class="cm"># but here is the logic:</span>
+load_factor = <span class="fn">len</span>(entries) / <span class="fn">len</span>(table)
+<span class="kw">if</span> load_factor > <span class="nm">0.7</span>:
+    <span class="cm"># Double the table size</span>
+    <span class="cm"># Rehash all existing keys into new table</span>
+    new_table = resize_and_rehash(table)</pre>
+
+    <div class="sub-title">Hash Sets — O(1) Membership Check</div>
+    <pre><span class="cm"># Check if item exists — O(1) not O(n)</span>
+seen = <span class="fn">set</span>()
+items = [<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>, <span class="nm">2</span>, <span class="nm">1</span>]
+
+<span class="kw">for</span> item <span class="kw">in</span> items:
+    <span class="kw">if</span> item <span class="kw">in</span> seen:       <span class="cm"># O(1) lookup</span>
+        <span class="kw">print</span>(<span class="st">f"Duplicate: {item}"</span>)
+    seen.<span class="fn">add</span>(item)</pre>
+
+    <div class="sub-title">Hashing in Your Projects</div>
+    <div class="box-blue">
+      <strong>🔗 MediLens / GharFix / SkillSync</strong>
+      When Supabase looks up a user record by ID or email — that is hashing at the database index level. When Python deduplicates complaint IDs in your complaint system — that is a hash set. When n8n caches webhook results by request ID — that is a hash map.
+    </div>
+
+    <div class="sub-title">Idempotency Key = Hash Map in Action</div>
+    <pre><span class="cm"># Store processed request IDs in a hash map</span>
+<span class="cm"># This IS hashing applied to your micro1 gap</span>
+<span class="kw">import</span> uuid
+
+processed = {}  <span class="cm"># hash map: key_id → result</span>
+
+<span class="kw">def</span> <span class="fn">process_payment</span>(idempotency_key, amount):
+    <span class="kw">if</span> idempotency_key <span class="kw">in</span> processed:
+        <span class="kw">return</span> processed[idempotency_key] <span class="cm"># O(1)</span>
+    result = <span class="fn">charge_card</span>(amount)
+    processed[idempotency_key] = result
+    <span class="kw">return</span> result</pre>
+
+    <div class="section-title orange" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is a hash map and when would you use it?"</div>
+      <div class="a">A hash map stores key-value pairs and gives O(1) average time for insert, search, and delete. I use it when I need fast lookups by key — like storing processed request IDs to prevent duplicate payments, or caching API responses by request hash. Python's dict is a hash map.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the time complexity of hash map operations?"</div>
+      <div class="a">O(1) average for insert, search, and delete. Worst case is O(n) but only when all keys collide at the same slot — which a good hash function prevents. In practice, Python dict is effectively O(1).</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "How does Python's dictionary handle collisions?"</div>
+      <div class="a">Python uses open addressing with a technique called perturbation-based probing — not simple linear probing. When a collision occurs, it computes a new slot using both the hash and the existing collision pattern, which reduces clustering. The dict also resizes automatically when the load factor crosses about 66%.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary to memorize</strong>
+      Hash map = instant lookup by key using a hash function to turn the key into an array index. O(1) average. Collisions handled by chaining (lists) or open addressing (probing). Python dict is a hash map.
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Cheat Sheet #1 of 4 · Hashing · micro1 Retake Prep · Maryum Akram · Next: Cheat Sheet #2 — Idempotency Keys
+  </div>
+
+</div>
+</body>
+</html>

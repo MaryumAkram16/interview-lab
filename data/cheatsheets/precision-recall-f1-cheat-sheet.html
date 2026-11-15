@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precision, Recall, F1 + Scikit-learn — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #1a1500; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #ffd740; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #ffe57f; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #ffd740; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #1a1500; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.green  { background: #0a2a1a; }
+  .section-title.purple { background: #2a0a2a; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #1a1500; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #fffdf0; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#1a1500;color:#ffd740;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+  .cm-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:6px 0}
+  .cm-cell{padding:8px;border-radius:4px;text-align:center;font-size:10px}
+  .cm-tp{background:#c8e6c9;border:1px solid #81c784}
+  .cm-tn{background:#c8e6c9;border:1px solid #81c784}
+  .cm-fp{background:#ffcdd2;border:1px solid #e57373}
+  .cm-fn{background:#ffcdd2;border:1px solid #e57373}
+  .cm-label{font-weight:800;font-size:9.5px;display:block;margin-bottom:2px}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Machine Learning · Cheat Sheet #14</div>
+      <div class="header-title">Precision, Recall, F1 + Scikit-learn</div>
+      <div class="header-sub">Confusion Matrix · TP/FP/TN/FN · When to Use Each Metric · Full Pipeline</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Confusion Matrix</div>
+    <div class="analogy">🏥 Imagine a cancer screening test. True Positive = correctly caught cancer. False Positive = healthy patient wrongly alarmed. False Negative = missed cancer patient. True Negative = correctly cleared healthy patient. Different mistakes have different costs.</div>
+
+    <div class="cm-grid">
+      <div class="cm-cell cm-tp">
+        <span class="cm-label">✅ TRUE POSITIVE (TP)</span>
+        Predicted: Positive<br>Actual: Positive<br><em>Correct!</em>
+      </div>
+      <div class="cm-cell cm-fp">
+        <span class="cm-label">❌ FALSE POSITIVE (FP)</span>
+        Predicted: Positive<br>Actual: Negative<br><em>Type I Error</em>
+      </div>
+      <div class="cm-cell cm-fn">
+        <span class="cm-label">❌ FALSE NEGATIVE (FN)</span>
+        Predicted: Negative<br>Actual: Positive<br><em>Type II Error</em>
+      </div>
+      <div class="cm-cell cm-tn">
+        <span class="cm-label">✅ TRUE NEGATIVE (TN)</span>
+        Predicted: Negative<br>Actual: Negative<br><em>Correct!</em>
+      </div>
+    </div>
+
+    <div class="sub-title">The Four Core Metrics</div>
+    <table>
+      <tr><th>Metric</th><th>Formula</th><th>Plain English</th></tr>
+      <tr><td><strong>Accuracy</strong></td><td>(TP+TN)/(All)</td><td>Overall correct %</td></tr>
+      <tr><td><strong>Precision</strong></td><td>TP/(TP+FP)</td><td>Of all positives predicted, how many were right?</td></tr>
+      <tr><td><strong>Recall</strong></td><td>TP/(TP+FN)</td><td>Of all actual positives, how many did we catch?</td></tr>
+      <tr><td><strong>F1 Score</strong></td><td>2×(P×R)/(P+R)</td><td>Harmonic mean of precision + recall</td></tr>
+    </table>
+
+    <div class="sub-title">When to Use Which Metric</div>
+    <table>
+      <tr><th>Situation</th><th>Optimize For</th><th>Why</th></tr>
+      <tr><td>Cancer detection</td><td><strong>Recall</strong></td><td>Missing cancer is catastrophic (FN)</td></tr>
+      <tr><td>Spam filter</td><td><strong>Precision</strong></td><td>Blocking real emails is worse (FP)</td></tr>
+      <tr><td>Fraud detection</td><td><strong>F1</strong></td><td>Both FP and FN are costly</td></tr>
+      <tr><td>Balanced dataset</td><td><strong>Accuracy</strong></td><td>Classes are equally represented</td></tr>
+      <tr><td>Imbalanced dataset</td><td><strong>F1 / AUC</strong></td><td>Accuracy misleads on imbalance</td></tr>
+    </table>
+
+    <div class="box-red">
+      <strong>⚠️ Accuracy is misleading on imbalanced data</strong>
+      If 95% of patients are healthy, a model that always predicts "healthy" gets 95% accuracy — but catches zero sick patients. Use F1 or recall instead when classes are imbalanced.
+    </div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Scikit-learn Metrics Code</div>
+
+    <div class="sub-title">Full Metrics in 10 Lines</div>
+    <pre><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (
+    accuracy_score, precision_score,
+    recall_score, f1_score,
+    classification_report, confusion_matrix
+)
+
+y_true = [<span class="nm">1</span>,<span class="nm">0</span>,<span class="nm">1</span>,<span class="nm">1</span>,<span class="nm">0</span>,<span class="nm">1</span>,<span class="nm">0</span>,<span class="nm">0</span>,<span class="nm">1</span>,<span class="nm">1</span>]
+y_pred = [<span class="nm">1</span>,<span class="nm">0</span>,<span class="nm">1</span>,<span class="nm">0</span>,<span class="nm">0</span>,<span class="nm">1</span>,<span class="nm">1</span>,<span class="nm">0</span>,<span class="nm">1</span>,<span class="nm">1</span>]
+
+<span class="kw">print</span>(<span class="fn">f</span><span class="st">"Accuracy : {accuracy_score(y_true, y_pred):.3f}"</span>)
+<span class="kw">print</span>(<span class="fn">f</span><span class="st">"Precision: {precision_score(y_true, y_pred):.3f}"</span>)
+<span class="kw">print</span>(<span class="fn">f</span><span class="st">"Recall   : {recall_score(y_true, y_pred):.3f}"</span>)
+<span class="kw">print</span>(<span class="fn">f</span><span class="st">"F1 Score : {f1_score(y_true, y_pred):.3f}"</span>)
+
+<span class="cm"># Full report — best for multi-class</span>
+<span class="kw">print</span>(<span class="fn">classification_report</span>(y_true, y_pred))
+
+<span class="cm"># Confusion matrix</span>
+cm = <span class="fn">confusion_matrix</span>(y_true, y_pred)
+<span class="kw">print</span>(cm)
+<span class="cm"># [[TN, FP],</span>
+<span class="cm">#  [FN, TP]]</span></pre>
+
+    <div class="sub-title">Complete Scikit-learn Pipeline</div>
+    <pre><span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> Pipeline
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> classification_report
+
+<span class="cm"># 1. Split data</span>
+X_train, X_test, y_train, y_test = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nm">0.2</span>, stratify=y, random_state=<span class="nm">42</span>
+)
+
+<span class="cm"># 2. Build pipeline — no data leakage!</span>
+pipeline = <span class="fn">Pipeline</span>([
+    (<span class="st">'scaler'</span>, <span class="fn">StandardScaler</span>()),
+    (<span class="st">'model'</span>,  <span class="fn">RandomForestClassifier</span>(n_estimators=<span class="nm">100</span>))
+])
+
+<span class="cm"># 3. Train</span>
+pipeline.<span class="fn">fit</span>(X_train, y_train)
+
+<span class="cm"># 4. Evaluate</span>
+y_pred = pipeline.<span class="fn">predict</span>(X_test)
+<span class="kw">print</span>(<span class="fn">classification_report</span>(y_test, y_pred))</pre>
+
+    <div class="box-green">
+      <strong>✅ Always use Pipeline</strong>
+      Sklearn Pipeline chains preprocessing and model together. It automatically applies fit on train and transform on test — preventing data leakage. One object to fit, one to predict.
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Precision vs Recall Tradeoff</div>
+    <div class="analogy">⚖️ Precision and recall pull against each other. A paranoid spam filter flags everything as spam — high recall (catches all spam), low precision (blocks real emails too). A cautious filter lets most email through — high precision, low recall.</div>
+
+    <pre><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> precision_recall_curve
+
+<span class="cm"># Get probability scores (not just 0/1)</span>
+y_scores = pipeline.<span class="fn">predict_proba</span>(X_test)[:,<span class="nm">1</span>]
+
+precision, recall, thresholds = <span class="fn">precision_recall_curve</span>(
+    y_test, y_scores
+)
+
+<span class="cm"># Lower threshold = more positives predicted</span>
+<span class="cm"># → higher recall, lower precision</span>
+<span class="cm"># Higher threshold = fewer positives predicted</span>
+<span class="cm"># → lower recall, higher precision</span>
+
+<span class="cm"># For fraud detection — lower threshold</span>
+<span class="cm"># For spam filter — higher threshold</span></pre>
+
+    <div class="sub-title">AUC-ROC Score</div>
+    <pre><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> roc_auc_score
+
+auc = <span class="fn">roc_auc_score</span>(y_test, y_scores)
+<span class="kw">print</span>(<span class="fn">f</span><span class="st">"AUC-ROC: {auc:.3f}"</span>)
+
+<span class="cm"># AUC = 0.5 → random guessing (useless)</span>
+<span class="cm"># AUC = 0.7 → acceptable</span>
+<span class="cm"># AUC = 0.9 → excellent</span>
+<span class="cm"># AUC = 1.0 → perfect (probably overfit!)</span></pre>
+
+    <div class="sub-title">Regression Metrics</div>
+    <pre><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (
+    mean_absolute_error,
+    mean_squared_error, r2_score
+)
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+mae  = <span class="fn">mean_absolute_error</span>(y_test, y_pred)
+mse  = <span class="fn">mean_squared_error</span>(y_test, y_pred)
+rmse = np.<span class="fn">sqrt</span>(mse)
+r2   = <span class="fn">r2_score</span>(y_test, y_pred)
+
+<span class="cm"># MAE  = average absolute error (same units)</span>
+<span class="cm"># RMSE = penalises large errors more</span>
+<span class="cm"># R²   = 1.0 = perfect, 0 = baseline mean</span></pre>
+
+    <div class="section-title purple" style="margin-top:8px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "When would you use F1 score instead of accuracy?"</div>
+      <div class="a">When the dataset is imbalanced. If 95% of transactions are legitimate, a model predicting "legitimate" for everything scores 95% accuracy but detects zero fraud. F1 score balances precision and recall — it's high only when both are high. For fraud detection I'd optimise for F1. For cancer screening I'd prioritise recall specifically, because a missed cancer is far worse than a false alarm.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between precision and recall?"</div>
+      <div class="a">Precision answers: of everything I predicted as positive, how many actually were? It penalises false positives. Recall answers: of all actual positives, how many did I catch? It penalises false negatives. For a spam filter, I'd maximise precision — I don't want to block legitimate emails. For a disease screening test, I'd maximise recall — I don't want to miss a sick patient.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Precision = TP/(TP+FP) — quality of positives predicted. Recall = TP/(TP+FN) — coverage of actual positives. F1 = harmonic mean, use for imbalanced data. Accuracy misleads on imbalanced datasets. Always use Pipeline to prevent data leakage. AUC-ROC measures overall discrimination ability.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #14 of 25 · Precision, Recall, F1 · Machine Learning Complete ✅ · Maryum Akram · Next: Sheet #15 — Neural Networks Basics</div>
+</div>
+</body>
+</html>

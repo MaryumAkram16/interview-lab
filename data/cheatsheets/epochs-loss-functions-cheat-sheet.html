@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Epochs, Batch Size, Loss Functions — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #1a0a00; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #ff9800; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #ffcc80; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #ff9800; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #1a0a00; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.green  { background: #0a2a1a; }
+  .section-title.purple { background: #2a0a2a; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #1a0a00; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #fffaf0; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#1a0a00;color:#ff9800;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Deep Learning · Cheat Sheet #16</div>
+      <div class="header-title">Epochs, Batch Size + Loss Functions</div>
+      <div class="header-sub">Epoch vs Iteration · Mini-batch SGD · Learning Rate · Loss Curves · Optimizers</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Epochs, Iterations, Batch Size</div>
+    <div class="analogy">📖 Imagine studying a 1000-page textbook. One epoch = reading all 1000 pages once. Batch size = how many pages you study before pausing to review. Iteration = number of pauses. More epochs = more passes through the whole book.</div>
+
+    <p><strong>Epoch</strong> = one complete pass through the entire training dataset.</p>
+    <p><strong>Batch size</strong> = number of samples processed before weights are updated.</p>
+    <p><strong>Iteration</strong> = one weight update step = dataset_size ÷ batch_size per epoch.</p>
+
+    <div class="sub-title">The Math</div>
+    <pre><span class="cm"># Example: 10,000 samples, batch_size=100</span>
+<span class="cm"># Iterations per epoch = 10,000 / 100 = 100</span>
+<span class="cm"># If you run 50 epochs:</span>
+<span class="cm"># Total iterations = 50 × 100 = 5,000 weight updates</span></pre>
+
+    <div class="sub-title">Batch Size Tradeoffs</div>
+    <table>
+      <tr><th>Batch Size</th><th>Type</th><th>Pro</th><th>Con</th></tr>
+      <tr><td><strong>1</strong></td><td>SGD</td><td>Escapes local minima</td><td>Slow, noisy</td></tr>
+      <tr><td><strong>32–256</strong></td><td>Mini-batch</td><td>Best of both worlds</td><td>Tune carefully</td></tr>
+      <tr><td><strong>All data</strong></td><td>Batch GD</td><td>Stable gradient</td><td>Memory heavy, slow</td></tr>
+    </table>
+
+    <div class="box-blue">
+      <strong>💡 Rule of thumb for batch size</strong>
+      Start with 32 or 64. Larger batches train faster but may generalise worse. Smaller batches act as regularization — the noise in gradient estimates helps escape sharp local minima.
+    </div>
+
+    <div class="sub-title">DataLoader — Batching in PyTorch</div>
+    <pre><span class="kw">from</span> torch.utils.data <span class="kw">import</span> DataLoader, TensorDataset
+<span class="kw">import</span> torch
+
+<span class="cm"># Wrap data in a dataset</span>
+dataset = <span class="fn">TensorDataset</span>(
+    torch.<span class="fn">tensor</span>(X_train).<span class="fn">float</span>(),
+    torch.<span class="fn">tensor</span>(y_train).<span class="fn">long</span>()
+)
+
+<span class="cm"># Create batched loader</span>
+loader = <span class="fn">DataLoader</span>(
+    dataset,
+    batch_size=<span class="nm">64</span>,
+    shuffle=<span class="nm">True</span>    <span class="cm"># shuffle each epoch</span>
+)
+
+<span class="cm"># Each iteration yields a batch</span>
+<span class="kw">for</span> X_batch, y_batch <span class="kw">in</span> loader:
+    <span class="cm"># X_batch.shape = [64, n_features]</span>
+    <span class="kw">pass</span></pre>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Loss Functions Deep Dive</div>
+    <div class="analogy">📏 A loss function is the scorecard that tells the model how wrong it is. The model's entire job is to minimise this number. Different tasks need different scorecards.</div>
+
+    <div class="sub-title">Classification Loss</div>
+    <pre><span class="kw">import</span> torch.nn <span class="kw">as</span> nn
+<span class="kw">import</span> torch
+
+<span class="cm"># Binary Cross-Entropy — binary classification</span>
+<span class="cm"># Output: sigmoid probability 0–1</span>
+bce = nn.<span class="fn">BCELoss</span>()
+y_pred = torch.<span class="fn">tensor</span>([<span class="nm">0.9</span>, <span class="nm">0.2</span>, <span class="nm">0.8</span>])
+y_true = torch.<span class="fn">tensor</span>([<span class="nm">1.0</span>, <span class="nm">0.0</span>, <span class="nm">1.0</span>])
+loss = <span class="fn">bce</span>(y_pred, y_true)
+
+<span class="cm"># CrossEntropyLoss — multi-class</span>
+<span class="cm"># Takes raw logits (no softmax needed!)</span>
+ce = nn.<span class="fn">CrossEntropyLoss</span>()
+logits = torch.<span class="fn">tensor</span>([[<span class="nm">2.0</span>, <span class="nm">0.5</span>, <span class="nm">0.3</span>],
+                         [<span class="nm">0.1</span>, <span class="nm">3.2</span>, <span class="nm">0.4</span>]])
+labels = torch.<span class="fn">tensor</span>([<span class="nm">0</span>, <span class="nm">1</span>])   <span class="cm"># class indices</span>
+loss = <span class="fn">ce</span>(logits, labels)</pre>
+
+    <div class="sub-title">Regression Loss</div>
+    <pre><span class="cm"># MSE Loss — mean squared error</span>
+<span class="cm"># Penalises large errors heavily</span>
+mse = nn.<span class="fn">MSELoss</span>()
+y_pred = torch.<span class="fn">tensor</span>([<span class="nm">2.5</span>, <span class="nm">0.3</span>, <span class="nm">1.8</span>])
+y_true = torch.<span class="fn">tensor</span>([<span class="nm">3.0</span>, <span class="nm">0.0</span>, <span class="nm">2.0</span>])
+loss = <span class="fn">mse</span>(y_pred, y_true)
+
+<span class="cm"># L1 Loss — mean absolute error</span>
+<span class="cm"># More robust to outliers than MSE</span>
+l1 = nn.<span class="fn">L1Loss</span>()
+loss = <span class="fn">l1</span>(y_pred, y_true)
+
+<span class="cm"># Huber Loss — best of MSE + L1</span>
+<span class="cm"># MSE for small errors, L1 for large outliers</span>
+huber = nn.<span class="fn">HuberLoss</span>()
+loss = <span class="fn">huber</span>(y_pred, y_true)</pre>
+
+    <div class="sub-title">Optimizers Comparison</div>
+    <table>
+      <tr><th>Optimizer</th><th>Key Feature</th><th>Use When</th></tr>
+      <tr><td><strong>SGD</strong></td><td>Simple, momentum optional</td><td>CV tasks with tuning</td></tr>
+      <tr><td><strong>Adam</strong></td><td>Adaptive lr per param</td><td>Default for most tasks</td></tr>
+      <tr><td><strong>AdamW</strong></td><td>Adam + weight decay fix</td><td>Transformers, LLMs</td></tr>
+      <tr><td><strong>RMSprop</strong></td><td>Adaptive lr, no momentum</td><td>RNNs, time series</td></tr>
+    </table>
+
+    <pre><span class="kw">import</span> torch.optim <span class="kw">as</span> optim
+
+<span class="cm"># Adam — most common default</span>
+optimizer = optim.<span class="fn">Adam</span>(
+    model.<span class="fn">parameters</span>(),
+    lr=<span class="nm">0.001</span>,
+    weight_decay=<span class="nm">1e-4</span>   <span class="cm"># L2 regularization</span>
+)
+
+<span class="cm"># Learning rate scheduler — decay over time</span>
+scheduler = optim.lr_scheduler.<span class="fn">StepLR</span>(
+    optimizer, step_size=<span class="nm">10</span>, gamma=<span class="nm">0.1</span>
+)
+<span class="cm"># lr drops by 10x every 10 epochs</span></pre>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Reading Loss Curves</div>
+    <div class="analogy">📉 Loss curves are your training X-ray. They show exactly what is happening inside the model's learning process. Knowing how to read them is a key interview skill.</div>
+
+    <div class="sub-title">Loss Curve Diagnosis</div>
+    <table>
+      <tr><th>Pattern</th><th>Diagnosis</th><th>Fix</th></tr>
+      <tr><td>Both curves decreasing</td><td>✅ Training well</td><td>Keep going</td></tr>
+      <tr><td>Train↓ Val↑ diverging</td><td>Overfitting</td><td>Dropout, regularize</td></tr>
+      <tr><td>Both curves high + flat</td><td>Underfitting</td><td>More capacity/epochs</td></tr>
+      <tr><td>Loss not decreasing</td><td>LR too low or stuck</td><td>Increase LR</td></tr>
+      <tr><td>Loss exploding (NaN)</td><td>LR too high</td><td>Decrease LR</td></tr>
+      <tr><td>Spiky / oscillating</td><td>LR too high</td><td>Reduce LR or increase batch</td></tr>
+    </table>
+
+    <div class="sub-title">Learning Rate Tuning</div>
+    <pre><span class="cm"># Learning rate is the most important hyperparameter</span>
+<span class="cm"># Too high = loss explodes or oscillates</span>
+<span class="cm"># Too low  = training takes forever</span>
+<span class="cm"># Rule: start at 1e-3, halve if loss plateaus</span>
+
+<span class="cm"># LR finder — try exponentially growing LR</span>
+lrs    = [<span class="nm">1e-5</span>, <span class="nm">1e-4</span>, <span class="nm">1e-3</span>, <span class="nm">1e-2</span>, <span class="nm">1e-1</span>]
+losses = []
+
+<span class="kw">for</span> lr <span class="kw">in</span> lrs:
+    loss = <span class="fn">train_one_step</span>(model, lr)
+    losses.<span class="fn">append</span>(loss)
+<span class="cm"># Pick lr just before loss starts increasing</span></pre>
+
+    <div class="section-title purple" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between an epoch, a batch, and an iteration?"</div>
+      <div class="a">An epoch is one complete pass through the entire training dataset. A batch is the number of samples processed before the model's weights are updated once. An iteration is one weight update — so if you have 1000 samples and batch size 100, you have 10 iterations per epoch. You typically run many epochs until the loss converges.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "Why use CrossEntropyLoss for classification and MSELoss for regression?"</div>
+      <div class="a">CrossEntropyLoss is designed for probability distributions — it measures how far the predicted class probabilities are from the true one-hot labels, and it pairs naturally with softmax output. MSELoss measures the squared difference between predicted and actual numbers, which is the right penalty for continuous output. Using MSELoss for classification would treat class labels as numbers and create a false ordering between classes.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Epoch = full data pass. Batch = samples per update. Iteration = updates per epoch = data_size/batch_size. CrossEntropyLoss for classification (takes raw logits). MSELoss for regression. Adam is the default optimizer. Learning rate is the most critical hyperparameter — start at 1e-3.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #16 of 25 · Epochs + Loss Functions · Deep Learning · Maryum Akram · Next: Sheet #17 — Activation Functions + Backpropagation</div>
+</div>
+</body>
+</html>

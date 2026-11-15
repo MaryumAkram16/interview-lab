@@ -17,3 +17,18 @@ for(let i=1;i<=9;i++)assert(ids.has('q-'+String(i).padStart(3,'0')),'Retain seed
 for(const name of ['Backend','DSA'])assert(Array.isArray(sheets[name])&&sheets[name].every(row=>row.length===2&&row.every(x=>typeof x==='string')));
 for(const f of ['assets/app.js','assets/cloud.js','assets/styles.css','config.js','index.html'])assert(fs.existsSync(path.join(root,f)));
 console.log('JavaScript syntax, question IDs, topic mapping, cheat sheets and web assets verified.');
+
+const crypto=require('node:crypto');
+const catalog=read('cheatsheet-catalog'),catalogIds=new Set(),catalogPaths=new Set(),hashes=new Set();
+assert(catalog.length>0,'Cheat sheet catalog must not be empty.');
+for(const entry of catalog){
+ assert(!catalogIds.has(entry.id)&&!catalogPaths.has(entry.path),'Duplicate catalog entry.');catalogIds.add(entry.id);catalogPaths.add(entry.path);
+ assert(/^data\/cheatsheets\/[a-z0-9-]+\.html$/.test(entry.path),'Unsafe sheet path.');
+ assert(typeof entry.title==='string'&&typeof entry.category==='string'&&typeof entry.keywords==='string');
+ const bytes=fs.readFileSync(path.join(root,entry.path)),hash=crypto.createHash('sha256').update(bytes).digest('hex');
+ assert.equal(entry.sha256,hash,'Original sheet hash mismatch: '+entry.path);assert(!hashes.has(hash),'Duplicate sheet content.');hashes.add(hash);
+ assert(!/<(?:script|iframe|form)\b|\bon[a-z]+\s*=/i.test(bytes.toString()),'Active content in sheet.');
+}
+const diskSheets=fs.readdirSync(path.join(root,'data/cheatsheets')).filter(p=>p.endsWith('.html'));
+assert.equal(diskSheets.length,catalog.length,'Unindexed sheet files.');
+console.log(catalog.length+' unique, indexed cheat sheets verified with content hashes.');

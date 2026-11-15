@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atomic Upsert Cheat Sheet — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #1a3d1a; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .header-brand { font-size: 10px; color: #7cfd9a; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .header-sub { font-size: 13px; color: #a0ffc0; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #7cfd9a; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #1a3d1a; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue { background: #0d2b5e; }
+  .section-title.red { background: #7f0000; }
+  .section-title.purple { background: #3d1a6e; }
+  .section-title.orange { background: #7a3500; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; overflow-x: auto; line-height: 1.6; }
+  .kw { color: #ff7b72; } .fn { color: #d2a8ff; } .st { color: #a5d6ff; } .cm { color: #8b949e; font-style: italic; } .nm { color: #79c0ff; } .op { color: #ffa657; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #1a3d1a; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f4fbf4; }
+  .box-green { background: #e8f5e9; border-left: 3px solid #2e7d32; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #1b5e20; }
+  .box-green strong { color: #1b5e20; font-size: 10px; display: block; margin-bottom: 2px; }
+  .box-red { background: #fdecea; border-left: 3px solid #c62828; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #7f0000; }
+  .box-red strong { color: #b71c1c; font-size: 10px; display: block; margin-bottom: 2px; }
+  .box-blue { background: #e3f2fd; border-left: 3px solid #1565c0; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #0d47a1; }
+  .box-blue strong { color: #0d47a1; font-size: 10px; display: block; margin-bottom: 2px; }
+  .qa-box { background: #fffde7; border: 1.5px solid #f9a825; border-radius: 5px; padding: 8px 10px; margin: 8px 0; font-size: 10.5px; }
+  .qa-box .q { font-weight: 700; color: #e65100; margin-bottom: 4px; }
+  .qa-box .a { color: #333; line-height: 1.5; }
+  .analogy { background: #f3e5f5; border-left: 3px solid #7b1fa2; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #4a148c; font-style: italic; }
+  .footer { grid-column: 1/-1; background: #1a3d1a; color: #7cfd9a; font-size: 10px; text-align: center; padding: 8px; font-weight: 600; letter-spacing: 0.5px; }
+  .hl { background: #e8eaff; padding: 1px 4px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #3730a3; }
+  .vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 6px 0; }
+  .vs-bad { background: #fdecea; border: 1px solid #ef9a9a; border-radius: 4px; padding: 6px 8px; font-size: 10px; }
+  .vs-good { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 4px; padding: 6px 8px; font-size: 10px; }
+  .vs-label { font-weight: 700; font-size: 9.5px; margin-bottom: 3px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <span class="header-brand">micro1 Retake Prep · Cheat Sheet #3 · 🔴 Priority Gap</span>
+      <span class="header-title">Atomic Upsert — INSERT...ON CONFLICT</span>
+      <span class="header-sub">Race Conditions · DO NOTHING vs DO UPDATE · Supabase · Row-Level Locking</span>
+    </div>
+    <div class="header-right">
+      Maryum Akram<br>AI Automation Engineer<br>
+      <a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a>
+    </div>
+  </div>
+
+  <!-- ══════════════ COLUMN 1 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title">What is an Atomic Upsert?</div>
+
+    <div class="analogy">
+      🚦 Analogy: Two cars race to park in the last spot. Without atomicity, both think the spot is free and both try to park — crash. An atomic upsert is like a traffic light: only one car gets the spot, the other is handled cleanly. It all happens in one uninterruptible step.
+    </div>
+
+    <p>An <strong>upsert</strong> = INSERT if record doesn't exist, UPDATE if it does — in a single atomic operation.</p>
+    <p><strong>Atomic</strong> means the check and the write happen as one uninterruptible unit. No other process can slip in between. This is crucial for preventing the "row doesn't exist yet" race condition, where multiple concurrent requests might try to create the same record, leading to duplicates or data corruption.</p>
+
+    <div class="sub-title">The Race Condition Problem (Without Atomicity)</div>
+
+    <div class="vs-grid">
+      <div class="vs-bad">
+        <div class="vs-label" style="color:#b71c1c">❌ BROKEN — 2 steps</div>
+        1. SELECT → record exists?<br>
+        2. If no → INSERT<br><br>
+        <em>Problem: Two threads both pass step 1 before either writes → both INSERT → duplicate! This is the classic "row doesn't exist yet" race condition.</em>
+      </div>
+      <div class="vs-good">
+        <div class="vs-label" style="color:#2e7d32">✅ SAFE — 1 atomic step</div>
+        INSERT...ON CONFLICT<br>
+        → check + write happen<br>
+        together, uninterruptible.<br>
+        <em>Database guarantees only one wins.</em>
+      </div>
+    </div>
+
+    <div class="sub-title">Basic Syntax — PostgreSQL</div>
+    <pre><span class="cm">-- INSERT...ON CONFLICT: the atomic upsert</span>
+<span class="kw">INSERT INTO</span> users (email, name, updated_at)
+<span class="kw">VALUES</span> (<span class="st">'maryum@email.com'</span>, <span class="st">'Maryum'</span>, now())
+
+<span class="kw">ON CONFLICT</span> (email)   <span class="cm">-- conflict on this column</span>
+
+<span class="cm">-- Option A: do nothing if already exists</span>
+<span class="kw">DO NOTHING</span>;
+
+<span class="cm">-- Option B: update specific fields</span>
+<span class="kw">DO UPDATE SET</span>
+    name       = <span class="op">EXCLUDED</span>.name,
+    updated_at = <span class="op">EXCLUDED</span>.updated_at;</pre>
+
+    <div class="box-blue">
+      <strong>💡 EXCLUDED = the row that was rejected</strong>
+      When a conflict happens, PostgreSQL calls the incoming (rejected) row <span class="hl">EXCLUDED</span>. You can reference its columns in the DO UPDATE SET clause to use the new values.
+    </div>
+
+    <div class="sub-title">DO NOTHING vs DO UPDATE — When to Use Each</div>
+    <table>
+      <tr><th>Scenario</th><th>Use</th></tr>
+      <tr><td>Idempotency keys — store once, ignore retries</td><td><strong>DO NOTHING</strong></td></tr>
+      <tr><td>User profile — create or refresh last_seen</td><td><strong>DO UPDATE</strong></td></tr>
+      <tr><td>Vote counting — only one vote per user</td><td><strong>DO NOTHING</strong></td></tr>
+      <tr><td>Inventory — update stock on re-receive</td><td><strong>DO UPDATE</strong></td></tr>
+      <tr><td>Session tokens — create or rotate token</td><td><strong>DO UPDATE</strong></td></tr>
+    </table>
+
+  </div>
+
+  <!-- ══════════════ COLUMN 2 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title blue">Real Code Patterns</div>
+
+    <div class="sub-title">Pattern 1 — Idempotency Key Storage</div>
+    <pre><span class="cm">-- Store a processed request key</span>
+<span class="cm">-- If same key comes again → silently ignore</span>
+<span class="kw">INSERT INTO</span> idempotency_keys
+    (key, result, created_at)
+<span class="kw">VALUES</span>
+    ($1, $2, now())
+<span class="kw">ON CONFLICT</span> (key)
+<span class="kw">DO NOTHING</span>;
+
+<span class="cm">-- Then check if the row was actually inserted</span>
+<span class="cm">-- or if it already existed:</span>
+<span class="cm">-- rows_affected = 0 means it was a duplicate</span></pre>
+
+    <div class="sub-title">Pattern 2 — User Record Upsert</div>
+    <pre><span class="cm">-- Create user on first login</span>
+<span class="cm">-- Update last_login on repeat visits</span>
+<span class="kw">INSERT INTO</span> users
+    (user_id, email, name, last_login)
+<span class="kw">VALUES</span>
+    ($1, $2, $3, now())
+<span class="kw">ON CONFLICT</span> (user_id)
+<span class="kw">DO UPDATE SET</span>
+    last_login = now(),
+    name       = <span class="op">EXCLUDED</span>.name
+<span class="kw">RETURNING</span> *;  <span class="cm">-- get the final row back</span></pre>
+
+    <div class="sub-title">Pattern 3 — Python with psycopg2</div>
+    <pre><span class="kw">import</span> psycopg2
+
+<span class="kw">def</span> <span class="fn">upsert_patient</span>(conn, patient_id, data):
+    <span class="kw">with</span> conn.<span class="fn">cursor</span>() <span class="kw">as</span> cur:
+        cur.<span class="fn">execute</span>(<span class="st">"""
+            INSERT INTO patients
+                (patient_id, name, phone)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (patient_id)
+            DO UPDATE SET
+                name  = EXCLUDED.name,
+                phone = EXCLUDED.phone
+            RETURNING patient_id, name;
+        """</span>, (patient_id,
+               data[<span class="st">"name"</span>],
+               data[<span class="st">"phone"</span>]))
+        conn.<span class="fn">commit</span>()
+        <span class="kw">return</span> cur.<span class="fn">fetchone</span>()</pre>
+
+    <div class="sub-title">Pattern 4 — Supabase (Your Stack!)</div>
+    <pre><span class="cm"># Supabase Python client upsert</span>
+<span class="kw">from</span> supabase <span class="kw">import</span> create_client
+
+supabase = <span class="fn">create_client</span>(url, key)
+
+<span class="cm"># upsert() uses ON CONFLICT internally</span>
+result = supabase.table(<span class="st">"appointments"</span>)\
+    .<span class="fn">upsert</span>({
+        <span class="st">"appointment_id"</span>: <span class="st">"appt_123"</span>,
+        <span class="st">"patient_id"</span>:     <span class="st">"pat_456"</span>,
+        <span class="st">"slot"</span>:           <span class="st">"2026-07-06 10:00"</span>,
+        <span class="st">"status"</span>:         <span class="st">"confirmed"</span>
+    })\
+    .<span class="fn">execute</span>()
+
+<span class="cm"># Safe to call multiple times —</span>
+<span class="cm"># won't create duplicate appointments</span></pre>
+
+    <div class="box-green">
+      <strong>✅ Supabase .upsert() = INSERT...ON CONFLICT</strong>
+      When you call <span class="hl">.upsert()</span> in Supabase, it generates an <span class="hl">INSERT...ON CONFLICT DO UPDATE</span> query under the hood. You've already used this in MediLens — now you know the SQL it produces!
+    </div>
+
+  </div>
+
+  <!-- ══════════════ COLUMN 3 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title red">Race Conditions & Locking</div>
+
+    <div class="sub-title">What is a Race Condition?</div>
+    <div class="analogy">
+      🏃 Two processes read the same data at the same time, both decide to write, and they overwrite each other. The result depends on who finishes last — unpredictable, dangerous.
+    </div>
+
+    <pre><span class="cm">-- ❌ RACE CONDITION — two separate steps</span>
+<span class="cm">-- Thread A and Thread B both run this</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> seats <span class="kw">WHERE</span> id = <span class="nm">1</span>;
+<span class="cm">-- both see: available = true</span>
+<span class="kw">UPDATE</span> seats <span class="kw">SET</span> available = <span class="nm">false</span>
+<span class="kw">WHERE</span> id = <span class="nm">1</span>;
+<span class="cm">-- both update! Seat double-booked 💥</span>
+
+<span class="cm">-- ✅ FIX — SELECT FOR UPDATE (row lock)</span>
+<span class="kw">BEGIN</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> seats
+<span class="kw">WHERE</span> id = <span class="nm">1</span>
+<span class="kw">FOR UPDATE</span>;  <span class="cm">-- locks this row</span>
+<span class="cm">-- Thread B now WAITS here</span>
+<span class="kw">UPDATE</span> seats <span class="kw">SET</span> available = <span class="nm">false</span>
+<span class="kw">WHERE</span> id = <span class="nm">1</span>;
+<span class="kw">COMMIT</span>;      <span class="cm">-- lock released, Thread B continues</span></pre>
+
+    <div class="sub-title">Three Ways to Prevent Race Conditions</div>
+    <table>
+      <tr><th>Method</th><th>How</th><th>Best For</th></tr>
+      <tr><td><strong>INSERT...ON CONFLICT</strong></td><td>Atomic upsert — DB handles it</td><td>Create-or-update records</td></tr>
+      <tr><td><strong>SELECT FOR UPDATE</strong></td><td>Lock the row before reading</td><td>Read-then-write patterns</td></tr>
+      <tr><td><strong>Transactions</strong></td><td>Wrap multiple ops in BEGIN/COMMIT</td><td>Multi-step operations</td></tr>
+    </table>
+
+    <div class="sub-title">ACID — Why Atomicity Matters</div>
+    <table>
+      <tr><th>Letter</th><th>Means</th><th>What it prevents</th></tr>
+      <tr><td><strong>A</strong>tomic</td><td>All or nothing</td><td>Partial writes</td></tr>
+      <tr><td><strong>C</strong>onsistent</td><td>Rules always upheld</td><td>Invalid data states</td></tr>
+      <tr><td><strong>I</strong>solated</td><td>Transactions don't interfere</td><td>Race conditions</td></tr>
+      <tr><td><strong>D</strong>urable</td><td>Committed = permanent</td><td>Data loss on crash</td></tr>
+    </table>
+
+    <div class="section-title orange" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is an atomic upsert and why does it matter?"</div>
+      <div class="a">An atomic upsert is a single database operation that either inserts a new record or updates an existing one — the check and the write happen together as one uninterruptible step. Without atomicity, two concurrent requests could both check, both see no record exists, and both insert — creating a duplicate. INSERT...ON CONFLICT in PostgreSQL solves this. I use Supabase's .upsert() in my projects which generates this SQL automatically.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between DO NOTHING and DO UPDATE?"</div>
+      <div class="a">DO NOTHING silently ignores the new data if a conflict occurs — perfect for idempotency keys where you only want to store the result once. DO UPDATE replaces or merges specific columns with the new values — perfect for user profiles where you want to update last_login or refresh a token on every request. EXCLUDED refers to the incoming row that caused the conflict.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "How does SELECT FOR UPDATE prevent race conditions?"</div>
+      <div class="a">SELECT FOR UPDATE acquires a row-level lock the moment you read it. Any other transaction trying to read the same row with FOR UPDATE will wait until your transaction commits. This makes the read-then-write pattern safe — no other process can change the row between your SELECT and your UPDATE. It's the right tool when INSERT...ON CONFLICT isn't enough, like booking the last seat in a concert.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary to memorize</strong>
+      Atomic upsert = INSERT...ON CONFLICT — single uninterruptible check-and-write. Prevents duplicates from concurrent requests. DO NOTHING = ignore duplicate. DO UPDATE = merge new values. Used in Supabase via .upsert(). Race condition prevention tool #1.
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Cheat Sheet #3 of 25 · Atomic Upsert · micro1 Retake Prep · Maryum Akram · Next: Sheet #4 — Coding Exercise Strategies
+  </div>
+
+</div>
+</body>
+</html>

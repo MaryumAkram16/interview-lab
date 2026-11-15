@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Pipelines — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #1a0a33; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #ce93d8; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #e1bee7; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #ce93d8; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #1a0a33; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue  { background: #0d2b5e; }
+  .section-title.green { background: #0a2a1a; }
+  .section-title.teal  { background: #003d3d; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #1a0a33; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #fdf4ff; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#1a0a33;color:#ce93d8;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+  .step-row{display:flex;gap:8px;align-items:flex-start;margin:5px 0}
+  .step-num{background:#1a0a33;color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;margin-top:1px}
+  .step-text{font-size:10.5px;color:#333}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">LLMs & Generative AI · Cheat Sheet #20</div>
+      <div class="header-title">RAG Pipelines</div>
+      <div class="header-sub">Embeddings · Vector Search · Chunking · Retrieval · Augmented Generation</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">What is RAG?</div>
+    <div class="analogy">📚 RAG is like giving an LLM an open-book exam. Instead of relying only on what it memorised during training, it searches a knowledge base for relevant passages, then uses those passages to answer the question. The answer is grounded in your specific documents — not just general knowledge.</div>
+
+    <p><strong>RAG = Retrieval-Augmented Generation.</strong> Retrieve relevant context from a document store, then augment the LLM prompt with that context before generating a response.</p>
+
+    <div class="sub-title">Why RAG Instead of Fine-Tuning?</div>
+    <table>
+      <tr><th></th><th>RAG</th><th>Fine-Tuning</th></tr>
+      <tr><td><strong>Updates</strong></td><td>Add docs instantly</td><td>Retrain required</td></tr>
+      <tr><td><strong>Cost</strong></td><td>Low — just storage</td><td>High — GPU time</td></tr>
+      <tr><td><strong>Hallucinations</strong></td><td>Reduced (grounded)</td><td>Still possible</td></tr>
+      <tr><td><strong>Best for</strong></td><td>Dynamic knowledge bases</td><td>Style/behaviour change</td></tr>
+    </table>
+
+    <div class="sub-title">The 6-Step RAG Pipeline</div>
+    <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Load</strong> — ingest documents (PDF, HTML, text)</div></div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Chunk</strong> — split into overlapping segments (~500 tokens)</div></div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Embed</strong> — convert each chunk to a vector using an embedding model</div></div>
+    <div class="step-row"><div class="step-num">4</div><div class="step-text"><strong>Store</strong> — save vectors in a vector database (Supabase pgvector, Pinecone, ChromaDB)</div></div>
+    <div class="step-row"><div class="step-num">5</div><div class="step-text"><strong>Retrieve</strong> — embed query, find top-k similar chunks by cosine similarity</div></div>
+    <div class="step-row"><div class="step-num">6</div><div class="step-text"><strong>Generate</strong> — inject retrieved chunks into LLM prompt, get grounded answer</div></div>
+
+    <div class="sub-title">What is an Embedding?</div>
+    <div class="analogy">🗺️ An embedding is a list of numbers (a vector) that captures the meaning of text. Similar meanings → similar vectors → close together in vector space. "fever and chills" and "high temperature, shivering" will have very similar vectors even though the words differ.</div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">RAG Code — Full Pipeline</div>
+
+    <div class="sub-title">Step 1–3: Chunk + Embed</div>
+    <pre><span class="kw">import</span> openai
+<span class="kw">from</span> pathlib <span class="kw">import</span> Path
+
+client = openai.<span class="fn">OpenAI</span>()
+
+<span class="kw">def</span> <span class="fn">chunk_text</span>(text, chunk_size=<span class="nm">500</span>, overlap=<span class="nm">50</span>):
+    <span class="cm"># Split text into overlapping chunks</span>
+    words = text.<span class="fn">split</span>()
+    chunks = []
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">0</span>, <span class="fn">len</span>(words), chunk_size - overlap):
+        chunk = <span class="st">" "</span>.<span class="fn">join</span>(words[i : i + chunk_size])
+        chunks.<span class="fn">append</span>(chunk)
+    <span class="kw">return</span> chunks
+
+<span class="kw">def</span> <span class="fn">embed_text</span>(text):
+    <span class="cm"># Get vector from OpenAI embedding model</span>
+    response = client.embeddings.<span class="fn">create</span>(
+        model=<span class="st">"text-embedding-3-small"</span>,
+        input=text
+    )
+    <span class="kw">return</span> response.data[<span class="nm">0</span>].embedding  <span class="cm"># list of floats</span>
+
+<span class="cm"># Process a document</span>
+doc_text = Path(<span class="st">"clinical_faq.txt"</span>).<span class="fn">read_text</span>()
+chunks = <span class="fn">chunk_text</span>(doc_text)
+embeddings = [<span class="fn">embed_text</span>(c) <span class="kw">for</span> c <span class="kw">in</span> chunks]</pre>
+
+    <div class="sub-title">Step 4: Store in Supabase pgvector</div>
+    <pre><span class="cm"># Supabase supports pgvector natively</span>
+<span class="kw">from</span> supabase <span class="kw">import</span> create_client
+
+supabase = <span class="fn">create_client</span>(url, key)
+
+<span class="kw">for</span> chunk, embedding <span class="kw">in</span> <span class="fn">zip</span>(chunks, embeddings):
+    supabase.table(<span class="st">"knowledge_base"</span>).<span class="fn">insert</span>({
+        <span class="st">"content"</span>:   chunk,
+        <span class="st">"embedding"</span>: embedding  <span class="cm"># pgvector column</span>
+    }).<span class="fn">execute</span>()</pre>
+
+    <div class="sub-title">Steps 5–6: Retrieve + Generate</div>
+    <pre><span class="kw">def</span> <span class="fn">rag_answer</span>(question, top_k=<span class="nm">3</span>):
+    <span class="cm"># Embed the question</span>
+    q_embedding = <span class="fn">embed_text</span>(question)
+
+    <span class="cm"># Find similar chunks via cosine similarity</span>
+    results = supabase.<span class="fn">rpc</span>(<span class="st">"match_documents"</span>, {
+        <span class="st">"query_embedding"</span>: q_embedding,
+        <span class="st">"match_count"</span>: top_k
+    }).<span class="fn">execute</span>()
+
+    <span class="cm"># Build context from retrieved chunks</span>
+    context = <span class="st">"\n\n"</span>.<span class="fn">join</span>(
+        [r[<span class="st">"content"</span>] <span class="kw">for</span> r <span class="kw">in</span> results.data]
+    )
+
+    <span class="cm"># Inject context into prompt</span>
+    response = client.chat.completions.<span class="fn">create</span>(
+        model=<span class="st">"gpt-4o"</span>,
+        messages=[{
+            <span class="st">"role"</span>: <span class="st">"system"</span>,
+            <span class="st">"content"</span>: <span class="st">"Answer using only the context below."</span>
+        }, {
+            <span class="st">"role"</span>: <span class="st">"user"</span>,
+            <span class="st">"content"</span>: <span class="fn">f</span><span class="st">"Context:\n{context}\n\nQuestion: {question}"</span>
+        }]
+    )
+    <span class="kw">return</span> response.choices[<span class="nm">0</span>].message.content</pre>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">RAG in Your Projects</div>
+
+    <div class="box-blue">
+      <strong>🏥 MediLens RAG Knowledge Base</strong>
+      MediLens uses a RAG pipeline for clinical FAQ responses. Patient questions ("What do I need to bring for my appointment?") are embedded, matched against a clinical FAQ knowledge base in Supabase, and the top 3 matching chunks are injected into the Gemini prompt. This reduces hallucination and ensures answers are grounded in the hospital's actual policies.
+    </div>
+
+    <div class="sub-title">Chunking Strategies</div>
+    <table>
+      <tr><th>Strategy</th><th>How</th><th>Best For</th></tr>
+      <tr><td><strong>Fixed size</strong></td><td>N tokens per chunk</td><td>General docs</td></tr>
+      <tr><td><strong>Overlapping</strong></td><td>Overlap by 10–20%</td><td>Prevents context loss at boundary</td></tr>
+      <tr><td><strong>Sentence</strong></td><td>Split on punctuation</td><td>Natural language docs</td></tr>
+      <tr><td><strong>Semantic</strong></td><td>Split on topic change</td><td>Long structured docs</td></tr>
+    </table>
+
+    <div class="sub-title">Vector Similarity — Cosine</div>
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="kw">def</span> <span class="fn">cosine_similarity</span>(a, b):
+    <span class="cm"># Measures angle between two vectors</span>
+    <span class="cm"># 1.0 = identical direction (same meaning)</span>
+    <span class="cm"># 0.0 = perpendicular (unrelated)</span>
+    <span class="cm"># -1.0 = opposite</span>
+    <span class="kw">return</span> np.<span class="fn">dot</span>(a, b) / (
+        np.<span class="fn">linalg</span>.<span class="fn">norm</span>(a) * np.<span class="fn">linalg</span>.<span class="fn">norm</span>(b)
+    )</pre>
+
+    <div class="sub-title">Vector DB Options</div>
+    <table>
+      <tr><th>DB</th><th>Best For</th></tr>
+      <tr><td><strong>Supabase pgvector</strong></td><td>Already using Supabase — zero extra infra</td></tr>
+      <tr><td><strong>Pinecone</strong></td><td>Managed, scales to billions of vectors</td></tr>
+      <tr><td><strong>ChromaDB</strong></td><td>Local development, open source</td></tr>
+      <tr><td><strong>Weaviate</strong></td><td>GraphQL + vector hybrid search</td></tr>
+    </table>
+
+    <div class="section-title teal" style="margin-top:8px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is RAG and how does it work?"</div>
+      <div class="a">RAG stands for Retrieval-Augmented Generation. Instead of asking an LLM to answer from memory alone, you first search a knowledge base for relevant documents, then inject those documents into the prompt so the LLM answers based on real, specific information. The pipeline: chunk documents, embed each chunk as a vector, store in a vector database, embed the query, retrieve top-k similar chunks by cosine similarity, then generate an answer grounded in those chunks. I built this in MediLens using Supabase pgvector for the clinical FAQ system.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      RAG = retrieve relevant chunks from vector DB → inject into LLM prompt → generate grounded answer. Embeddings = text → vector of numbers capturing meaning. Cosine similarity finds closest chunks. Supabase pgvector = vector DB you already use. Better than fine-tuning for dynamic knowledge that updates frequently.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #20 of 25 · RAG Pipelines · LLMs & Gen AI · Maryum Akram · Next: Sheet #21 — Function Calling + LangChain</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retry Patterns + Exponential Backoff — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #003333; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #80cbc4; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #b2dfdb; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #80cbc4; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #003333; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.orange { background: #7a3500; }
+  .section-title.purple { background: #2d1b4e; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #003333; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0fffe; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#003333;color:#80cbc4;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+  .backoff-row { display:flex; align-items:center; gap:8px; margin:3px 0; font-size:10.5px; }
+  .backoff-attempt { background:#003333; color:white; border-radius:3px; padding:1px 6px; font-size:9.5px; font-weight:700; font-family:'JetBrains Mono',monospace; min-width:60px; text-align:center; }
+  .backoff-wait { background:#e0f2f1; color:#004d40; border-radius:3px; padding:1px 6px; font-size:9.5px; font-weight:700; font-family:'JetBrains Mono',monospace; min-width:55px; text-align:center; }
+  .backoff-arrow { color:#aaa; font-size:10px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">API Reliability · Cheat Sheet #10</div>
+      <div class="header-title">Retry Patterns + Exponential Backoff</div>
+      <div class="header-sub">When to Retry · Backoff Formula · Jitter · tenacity Library · Circuit Breaker</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Retry Logic — When & When Not</div>
+    <div class="analogy">📞 Retry is like redialing a busy number. But if the number doesn't exist (404), redialing forever makes no sense. Only redial for temporary problems — server overloaded (503), network blip (timeout), rate limit (429).</div>
+
+    <div class="sub-title">Retry Decision Table</div>
+    <table>
+      <tr><th>Error</th><th>Retry?</th><th>Why</th></tr>
+      <tr><td>500 Server Error</td><td>✅ Yes</td><td>Temporary server crash</td></tr>
+      <tr><td>502 Bad Gateway</td><td>✅ Yes</td><td>Upstream blip</td></tr>
+      <tr><td>503 Unavailable</td><td>✅ Yes</td><td>Server overloaded</td></tr>
+      <tr><td>504 Timeout</td><td>✅ Yes</td><td>Slow upstream</td></tr>
+      <tr><td>429 Rate Limited</td><td>✅ Yes (wait first)</td><td>After Retry-After delay</td></tr>
+      <tr><td>Timeout exception</td><td>✅ Yes</td><td>Network blip</td></tr>
+      <tr><td>400 Bad Request</td><td>❌ No</td><td>Your request is wrong</td></tr>
+      <tr><td>401 Unauthorized</td><td>⚠️ Once</td><td>Refresh token then retry</td></tr>
+      <tr><td>403 Forbidden</td><td>❌ No</td><td>Permission issue</td></tr>
+      <tr><td>404 Not Found</td><td>❌ No</td><td>Resource gone</td></tr>
+      <tr><td>422 Unprocessable</td><td>❌ No</td><td>Invalid data logic</td></tr>
+    </table>
+
+    <div class="sub-title">Simple Retry Loop</div>
+    <pre><span class="kw">import</span> time, requests
+
+<span class="kw">def</span> <span class="fn">retry_request</span>(url, max_retries=<span class="nm">3</span>):
+    <span class="kw">for</span> attempt <span class="kw">in</span> <span class="fn">range</span>(max_retries):
+        <span class="kw">try</span>:
+            resp = requests.<span class="fn">get</span>(url, timeout=<span class="nm">10</span>)
+            resp.<span class="fn">raise_for_status</span>()
+            <span class="kw">return</span> resp.<span class="fn">json</span>()
+
+        <span class="kw">except</span> requests.exceptions.<span class="fn">HTTPError</span> <span class="kw">as</span> e:
+            code = e.response.status_code
+            <span class="kw">if</span> code < <span class="nm">500</span> <span class="kw">and</span> code != <span class="nm">429</span>:
+                <span class="kw">raise</span>  <span class="cm"># 4xx — don't retry</span>
+            <span class="kw">if</span> attempt == max_retries - <span class="nm">1</span>:
+                <span class="kw">raise</span>  <span class="cm"># last attempt — give up</span>
+
+        <span class="cm"># Wait before next attempt</span>
+        wait = <span class="nm">2</span> ** attempt   <span class="cm"># 1s, 2s, 4s</span>
+        time.<span class="fn">sleep</span>(wait)
+
+    <span class="kw">raise</span> <span class="fn">RuntimeError</span>(<span class="st">"Max retries exceeded"</span>)</pre>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Exponential Backoff + Jitter</div>
+    <div class="analogy">🌊 Exponential backoff is like waves on a beach — each retry waits twice as long as the previous one. Jitter adds a random wobble so 1000 clients don't all retry at the exact same second and crash the server again.</div>
+
+    <div class="sub-title">The Backoff Formula</div>
+    <p><strong>wait = base × 2^attempt + random_jitter</strong></p>
+
+    <div class="backoff-row"><span class="backoff-attempt">Attempt 0</span><span class="backoff-arrow">→</span><span class="backoff-wait">~1s</span><span style="color:#666;font-size:10px"> (1 × 2⁰ + jitter)</span></div>
+    <div class="backoff-row"><span class="backoff-attempt">Attempt 1</span><span class="backoff-arrow">→</span><span class="backoff-wait">~2s</span><span style="color:#666;font-size:10px"> (1 × 2¹ + jitter)</span></div>
+    <div class="backoff-row"><span class="backoff-attempt">Attempt 2</span><span class="backoff-arrow">→</span><span class="backoff-wait">~4s</span><span style="color:#666;font-size:10px"> (1 × 2² + jitter)</span></div>
+    <div class="backoff-row"><span class="backoff-attempt">Attempt 3</span><span class="backoff-arrow">→</span><span class="backoff-wait">~8s</span><span style="color:#666;font-size:10px"> (1 × 2³ + jitter)</span></div>
+    <div class="backoff-row"><span class="backoff-attempt">Max cap</span><span class="backoff-arrow">→</span><span class="backoff-wait">60s</span><span style="color:#666;font-size:10px"> (never wait more)</span></div>
+
+    <div class="sub-title">Full Implementation with Jitter</div>
+    <pre><span class="kw">import</span> time, random, requests
+
+<span class="kw">def</span> <span class="fn">exponential_backoff</span>(
+    url,
+    max_retries=<span class="nm">4</span>,
+    base_delay=<span class="nm">1</span>,
+    max_delay=<span class="nm">60</span>
+):
+    <span class="kw">for</span> attempt <span class="kw">in</span> <span class="fn">range</span>(max_retries):
+        <span class="kw">try</span>:
+            resp = requests.<span class="fn">get</span>(url, timeout=<span class="nm">10</span>)
+            resp.<span class="fn">raise_for_status</span>()
+            <span class="kw">return</span> resp.<span class="fn">json</span>()
+
+        <span class="kw">except</span> (requests.exceptions.<span class="fn">HTTPError</span>,
+                requests.exceptions.<span class="fn">Timeout</span>,
+                requests.exceptions.<span class="fn">ConnectionError</span>) <span class="kw">as</span> e:
+
+            <span class="kw">if</span> <span class="fn">hasattr</span>(e, <span class="st">'response'</span>) \
+               <span class="kw">and</span> e.response <span class="kw">is not</span> <span class="nm">None</span> \
+               <span class="kw">and</span> e.response.status_code < <span class="nm">500</span> \
+               <span class="kw">and</span> e.response.status_code != <span class="nm">429</span>:
+                <span class="kw">raise</span>  <span class="cm"># 4xx — don't retry</span>
+
+            <span class="kw">if</span> attempt == max_retries - <span class="nm">1</span>:
+                <span class="kw">raise</span>  <span class="cm"># exhausted retries</span>
+
+            <span class="cm"># Exponential backoff with jitter</span>
+            wait = <span class="fn">min</span>(
+                base_delay * (<span class="nm">2</span> ** attempt)
+                + random.<span class="fn">uniform</span>(<span class="nm">0</span>, <span class="nm">1</span>),
+                max_delay
+            )
+            <span class="kw">print</span>(<span class="fn">f</span><span class="st">"Attempt {attempt+1} failed. Waiting {wait:.1f}s"</span>)
+            time.<span class="fn">sleep</span>(wait)</pre>
+
+    <div class="box-blue">
+      <strong>💡 Why jitter matters</strong>
+      Without jitter: if 500 clients all get rate-limited at time T, they all retry at T+2s, T+4s, T+8s — creating thundering herd waves that keep crashing the server. With jitter: each client waits a slightly different time, spreading the load evenly.
+    </div>
+
+    <div class="sub-title">tenacity — Production Retry Library</div>
+    <pre><span class="kw">from</span> tenacity <span class="kw">import</span> (
+    retry, stop_after_attempt,
+    wait_exponential, retry_if_exception_type
+)
+
+<span class="cm"># Clean decorator-based retry</span>
+@<span class="fn">retry</span>(
+    stop=<span class="fn">stop_after_attempt</span>(<span class="nm">4</span>),
+    wait=<span class="fn">wait_exponential</span>(
+        multiplier=<span class="nm">1</span>, min=<span class="nm">1</span>, max=<span class="nm">60</span>
+    ),
+    retry=<span class="fn">retry_if_exception_type</span>(
+        requests.exceptions.ConnectionError
+    )
+)
+<span class="kw">def</span> <span class="fn">call_gemini</span>(prompt):
+    <span class="kw">return</span> requests.<span class="fn">post</span>(gemini_url, json={<span class="st">"prompt"</span>: prompt})</pre>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title orange">Circuit Breaker Pattern</div>
+    <div class="analogy">⚡ A circuit breaker is like your home's fuse box. When something goes badly wrong (too many failures), it trips open and stops all requests for a cooldown period. This prevents hammering a failing service and gives it time to recover.</div>
+
+    <div class="sub-title">Circuit Breaker States</div>
+    <table>
+      <tr><th>State</th><th>Behaviour</th></tr>
+      <tr><td><strong>CLOSED</strong></td><td>Normal — requests pass through</td></tr>
+      <tr><td><strong>OPEN</strong></td><td>Tripped — all requests fail fast, no calls made</td></tr>
+      <tr><td><strong>HALF-OPEN</strong></td><td>Testing — one request allowed through to check recovery</td></tr>
+    </table>
+
+    <pre><span class="kw">import</span> time
+
+<span class="kw">class</span> <span class="fn">CircuitBreaker</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="op">self</span>, failure_threshold=<span class="nm">5</span>,
+                       reset_timeout=<span class="nm">60</span>):
+        <span class="op">self</span>.failures = <span class="nm">0</span>
+        <span class="op">self</span>.threshold = failure_threshold
+        <span class="op">self</span>.reset_timeout = reset_timeout
+        <span class="op">self</span>.state = <span class="st">"CLOSED"</span>
+        <span class="op">self</span>.opened_at = <span class="nm">None</span>
+
+    <span class="kw">def</span> <span class="fn">call</span>(<span class="op">self</span>, func, *args):
+        <span class="kw">if</span> <span class="op">self</span>.state == <span class="st">"OPEN"</span>:
+            elapsed = time.<span class="fn">time</span>() - <span class="op">self</span>.opened_at
+            <span class="kw">if</span> elapsed < <span class="op">self</span>.reset_timeout:
+                <span class="kw">raise</span> <span class="fn">RuntimeError</span>(<span class="st">"Circuit OPEN"</span>)
+            <span class="op">self</span>.state = <span class="st">"HALF-OPEN"</span>
+
+        <span class="kw">try</span>:
+            result = <span class="fn">func</span>(*args)
+            <span class="op">self</span>.failures = <span class="nm">0</span>
+            <span class="op">self</span>.state = <span class="st">"CLOSED"</span>
+            <span class="kw">return</span> result
+        <span class="kw">except</span> <span class="fn">Exception</span>:
+            <span class="op">self</span>.failures += <span class="nm">1</span>
+            <span class="kw">if</span> <span class="op">self</span>.failures >= <span class="op">self</span>.threshold:
+                <span class="op">self</span>.state = <span class="st">"OPEN"</span>
+                <span class="op">self</span>.opened_at = time.<span class="fn">time</span>()
+            <span class="kw">raise</span></pre>
+
+    <div class="section-title purple" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is exponential backoff and why use it?"</div>
+      <div class="a">Exponential backoff means each retry waits twice as long as the previous one — 1s, 2s, 4s, 8s. This gives the failing server increasing time to recover instead of being hammered by constant retries. I add jitter — a small random amount — to each wait time to prevent thundering herd, where hundreds of clients all retry at exactly the same moment and overwhelm the server again.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is a circuit breaker and when would you use it?"</div>
+      <div class="a">A circuit breaker tracks consecutive failures to an external service. When failures exceed a threshold, it trips open and stops sending requests for a cooldown period — failing fast instead of waiting for timeouts. After the cooldown it allows one test request through. If that succeeds, it closes again. I'd use it in MediLens for the Retell AI voice service — if Retell is down, fail immediately rather than making patients wait 30 seconds for every timeout.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Retry 5xx and timeouts only. Use exponential backoff: wait = base × 2^attempt + jitter. Cap max wait at 60s. Use tenacity library in production. Circuit breaker = fail fast after N failures, recover after cooldown.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #10 of 25 · Retry Patterns + Exponential Backoff · API Reliability · Maryum Akram · Next: Sheet #11 — Rate Limiting + Fallback Strategies</div>
+</div>
+</body>
+</html>

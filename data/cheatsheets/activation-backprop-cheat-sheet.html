@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activation Functions + Backpropagation — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #0a001a; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #b388ff; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #d1b3ff; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #b388ff; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #0a001a; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue  { background: #0d2b5e; }
+  .section-title.green { background: #0a2a1a; }
+  .section-title.teal  { background: #003d3d; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #0a001a; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8f4ff; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#0a001a;color:#b388ff;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+  .step-row{display:flex;gap:8px;align-items:flex-start;margin:5px 0}
+  .step-num{background:#0a001a;color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;margin-top:1px}
+  .step-text{font-size:10.5px;color:#333}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Deep Learning · Cheat Sheet #17</div>
+      <div class="header-title">Activation Functions + Backpropagation</div>
+      <div class="header-sub">ReLU · Sigmoid · Vanishing Gradient · Chain Rule · autograd</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Activation Functions Compared</div>
+
+    <table>
+      <tr><th>Function</th><th>Formula</th><th>Range</th><th>Best Use</th></tr>
+      <tr><td><strong>ReLU</strong></td><td>max(0, x)</td><td>[0, ∞)</td><td>Hidden layers — default</td></tr>
+      <tr><td><strong>LeakyReLU</strong></td><td>max(0.01x, x)</td><td>(-∞, ∞)</td><td>Avoids dying ReLU</td></tr>
+      <tr><td><strong>Sigmoid</strong></td><td>1/(1+e^-x)</td><td>(0, 1)</td><td>Binary output layer</td></tr>
+      <tr><td><strong>Tanh</strong></td><td>(e^x-e^-x)/(e^x+e^-x)</td><td>(-1, 1)</td><td>Hidden (centred at 0)</td></tr>
+      <tr><td><strong>Softmax</strong></td><td>e^xᵢ / Σe^xⱼ</td><td>(0,1), Σ=1</td><td>Multi-class output</td></tr>
+      <tr><td><strong>GELU</strong></td><td>x·Φ(x)</td><td>(-∞, ∞)</td><td>Transformers (BERT, GPT)</td></tr>
+    </table>
+
+    <pre><span class="kw">import</span> torch
+<span class="kw">import</span> torch.nn.functional <span class="kw">as</span> F
+
+x = torch.<span class="fn">tensor</span>([-<span class="nm">2.0</span>, -<span class="nm">1.0</span>, <span class="nm">0.0</span>, <span class="nm">1.0</span>, <span class="nm">2.0</span>])
+
+F.<span class="fn">relu</span>(x)         <span class="cm"># [0,    0,   0,   1,   2]</span>
+F.<span class="fn">leaky_relu</span>(x)   <span class="cm"># [-0.02,-0.01,0,  1,   2]</span>
+torch.<span class="fn">sigmoid</span>(x)  <span class="cm"># [0.12, 0.27, 0.5, 0.73, 0.88]</span>
+torch.<span class="fn">tanh</span>(x)     <span class="cm"># [-0.96,-0.76, 0,  0.76, 0.96]</span>
+F.<span class="fn">softmax</span>(x, dim=<span class="nm">0</span>) <span class="cm"># sums to 1.0</span>
+F.<span class="fn">gelu</span>(x)         <span class="cm"># smooth ReLU variant</span></pre>
+
+    <div class="sub-title">Vanishing Gradient Problem</div>
+    <div class="analogy">📡 Imagine passing a whisper through 100 people. By the time it reaches the end, the message is nearly inaudible. Sigmoid squashes all values into (0,1), and its gradients are tiny — multiplying tiny numbers through 100 layers makes the gradient vanish near 0. Early layers stop learning.</div>
+
+    <div class="box-red">
+      <strong>⚠️ Sigmoid/Tanh cause vanishing gradients in deep networks</strong>
+      Their derivatives max out at 0.25 (sigmoid) and 1.0 (tanh). In a 10-layer network, the gradient shrinks to nearly 0 by the time it reaches layer 1. Fix: use ReLU for hidden layers — its gradient is either 0 or 1, no shrinking.
+    </div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Backpropagation</div>
+    <div class="analogy">🔙 Backprop is how the network learns from its mistakes. Forward pass = make a prediction. Compute loss = measure how wrong. Backward pass = trace which weights caused the error, compute their gradients. Optimizer step = nudge each weight to reduce the error.</div>
+
+    <div class="sub-title">The 5-Step Learning Cycle</div>
+    <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Forward pass</strong> — data flows through layers, producing a prediction</div></div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Compute loss</strong> — measure how far prediction is from truth</div></div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Backward pass</strong> — chain rule traces gradient of loss back through every weight</div></div>
+    <div class="step-row"><div class="step-num">4</div><div class="step-text"><strong>Gradient stored</strong> — each weight gets <span class="hl">.grad</span> populated</div></div>
+    <div class="step-row"><div class="step-num">5</div><div class="step-text"><strong>Optimizer step</strong> — subtract gradient × learning rate from each weight</div></div>
+
+    <div class="sub-title">PyTorch autograd — How It Works</div>
+    <pre><span class="kw">import</span> torch
+
+<span class="cm"># requires_grad=True → PyTorch tracks operations</span>
+x = torch.<span class="fn">tensor</span>([<span class="nm">2.0</span>], requires_grad=<span class="nm">True</span>)
+w = torch.<span class="fn">tensor</span>([<span class="nm">3.0</span>], requires_grad=<span class="nm">True</span>)
+
+<span class="cm"># Forward pass</span>
+y = x * w + <span class="nm">1</span>   <span class="cm"># y = 2*3 + 1 = 7</span>
+loss = (y - <span class="nm">5</span>) ** <span class="nm">2</span>  <span class="cm"># loss = (7-5)² = 4</span>
+
+<span class="cm"># Backward pass — compute all gradients</span>
+loss.<span class="fn">backward</span>()
+
+<span class="kw">print</span>(w.grad)  <span class="cm"># d(loss)/d(w) = 2*(y-5)*x = 2*2*2 = 8</span>
+<span class="kw">print</span>(x.grad)  <span class="cm"># d(loss)/d(x) = 2*(y-5)*w = 2*2*3 = 12</span>
+
+<span class="cm"># Update weight manually (what optimizer does)</span>
+<span class="kw">with</span> torch.<span class="fn">no_grad</span>():
+    w -= <span class="nm">0.01</span> * w.grad   <span class="cm"># lr=0.01</span>
+    w.grad.<span class="fn">zero_</span>()       <span class="cm"># clear for next step</span></pre>
+
+    <div class="box-blue">
+      <strong>💡 zero_grad() — why it matters</strong>
+      PyTorch accumulates (adds) gradients by default. If you forget <span class="hl">optimizer.zero_grad()</span> before each backward pass, gradients from the previous step add to the current ones — making weight updates wrong. Always zero gradients first.
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Chain Rule — The Math Behind Backprop</div>
+    <div class="analogy">🔗 The chain rule says: if y depends on x through z, then dy/dx = dy/dz × dz/dx. Backprop applies this rule layer by layer — multiplying gradients from output back to input to find how each weight affects the final loss.</div>
+
+    <p>For a network: <strong>loss → output layer → hidden layer → input</strong></p>
+    <p>Gradient at each layer = (gradient from next layer) × (local gradient of this layer's operation)</p>
+
+    <pre><span class="cm"># Chain rule in action — manual example</span>
+<span class="cm"># Network: x → h = relu(wx) → loss = (h-y)²</span>
+
+<span class="cm"># Given:</span>
+<span class="cm"># w=2, x=3, y=5</span>
+<span class="cm"># h = relu(2*3) = 6</span>
+<span class="cm"># loss = (6-5)² = 1</span>
+
+<span class="cm"># d(loss)/d(h)  = 2*(h-y)    = 2*(6-5) = 2</span>
+<span class="cm"># d(h)/d(wx)   = relu_grad  = 1 (since h>0)</span>
+<span class="cm"># d(wx)/d(w)   = x           = 3</span>
+
+<span class="cm"># Chain rule: d(loss)/d(w)</span>
+<span class="cm"># = d(loss)/d(h) × d(h)/d(wx) × d(wx)/d(w)</span>
+<span class="cm"># = 2 × 1 × 3 = 6</span>
+<span class="cm"># → w updates by: w -= lr × 6</span></pre>
+
+    <div class="sub-title">Gradient Clipping — Exploding Gradients</div>
+    <pre><span class="cm"># Opposite problem to vanishing:</span>
+<span class="cm"># gradients grow exponentially in deep/RNN nets</span>
+<span class="cm"># loss = NaN is the symptom</span>
+
+<span class="kw">import</span> torch.nn <span class="kw">as</span> nn
+
+loss.<span class="fn">backward</span>()
+
+<span class="cm"># Clip gradient norm to max 1.0</span>
+nn.utils.<span class="fn">clip_grad_norm_</span>(
+    model.<span class="fn">parameters</span>(), max_norm=<span class="nm">1.0</span>
+)
+
+optimizer.<span class="fn">step</span>()
+<span class="cm"># No more exploding gradients</span></pre>
+
+    <div class="section-title teal" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "Explain backpropagation in plain English."</div>
+      <div class="a">Backpropagation computes how much each weight contributed to the final error by applying the chain rule from the output layer back to the input. It gives every weight a gradient — a number saying "if you increase this weight slightly, the loss goes up or down by this much." The optimizer then adjusts each weight in the direction that reduces the loss. PyTorch's autograd does this automatically when you call loss.backward().</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the vanishing gradient problem?"</div>
+      <div class="a">In deep networks using sigmoid or tanh activations, gradients get multiplied together as they flow backward. Since sigmoid's maximum gradient is 0.25, multiplying it through 10 layers gives 0.25^10 ≈ 0.000001 — effectively zero. The earliest layers receive almost no gradient signal and stop learning. ReLU solves this because its gradient is either 0 or 1, so it doesn't shrink gradients during backprop.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      ReLU for hidden layers — avoids vanishing gradient. Sigmoid/Softmax for output only. Backprop = chain rule applied backwards through layers, computing d(loss)/d(weight) for every weight. zero_grad() before every backward pass. Clip gradients for RNNs/very deep nets.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #17 of 25 · Activation Functions + Backpropagation · Deep Learning · Maryum Akram · Next: Sheet #18 — Transfer Learning + Fine-Tuning</div>
+</div>
+</body>
+</html>

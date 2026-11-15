@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supervised vs Unsupervised + Train/Test Split — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #0a2a1a; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #69f0ae; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #b9f6ca; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #69f0ae; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #0a2a1a; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.purple { background: #2d1b4e; }
+  .section-title.orange { background: #7a3500; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #0a2a1a; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0fff4; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#0a2a1a;color:#69f0ae;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}
+  .card{border-radius:4px;padding:8px;font-size:10.5px}
+  .card-a{background:#e8f5e9;border:1px solid #a5d6a7}
+  .card-b{background:#e3f2fd;border:1px solid #90caf9}
+  .card-label{font-weight:800;font-size:10px;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Machine Learning · Cheat Sheet #12</div>
+      <div class="header-title">Supervised vs Unsupervised + Train/Test Split</div>
+      <div class="header-sub">Learning Types · Algorithms · Features vs Labels · Splitting Data Correctly</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Learning Types</div>
+    <div class="analogy">👩‍🏫 Supervised = learning with a teacher who shows you the right answer. Unsupervised = exploring data with no answers given — you find the patterns yourself. Reinforcement = learning by trial, error, and reward.</div>
+
+    <div class="two-col">
+      <div class="card card-a">
+        <div class="card-label" style="color:#1b5e20">✅ SUPERVISED</div>
+        Input + correct label provided.<br>
+        Model learns mapping.<br><br>
+        <strong>Goal:</strong> predict label for new input.<br>
+        <strong>Needs:</strong> labelled dataset.
+      </div>
+      <div class="card card-b">
+        <div class="card-label" style="color:#0d47a1">🔍 UNSUPERVISED</div>
+        Input only — no labels.<br>
+        Model finds structure.<br><br>
+        <strong>Goal:</strong> discover hidden patterns.<br>
+        <strong>Needs:</strong> no labels required.
+      </div>
+    </div>
+
+    <div class="sub-title">Supervised — Two Task Types</div>
+    <table>
+      <tr><th>Task</th><th>Output</th><th>Example</th><th>Algorithms</th></tr>
+      <tr><td><strong>Classification</strong></td><td>Category</td><td>Spam / Not spam</td><td>Logistic Reg, SVM, Random Forest</td></tr>
+      <tr><td><strong>Regression</strong></td><td>Number</td><td>House price</td><td>Linear Reg, Ridge, XGBoost</td></tr>
+    </table>
+
+    <div class="sub-title">Unsupervised — Common Tasks</div>
+    <table>
+      <tr><th>Task</th><th>Goal</th><th>Algorithm</th></tr>
+      <tr><td><strong>Clustering</strong></td><td>Group similar items</td><td>K-Means, DBSCAN</td></tr>
+      <tr><td><strong>Dimensionality Reduction</strong></td><td>Compress features</td><td>PCA, t-SNE, UMAP</td></tr>
+      <tr><td><strong>Anomaly Detection</strong></td><td>Find outliers</td><td>Isolation Forest</td></tr>
+      <tr><td><strong>Association</strong></td><td>Find co-occurrences</td><td>Apriori</td></tr>
+    </table>
+
+    <div class="sub-title">Features (X) vs Labels (y)</div>
+    <pre><span class="kw">import</span> pandas <span class="kw">as</span> pd
+
+df = pd.<span class="fn">read_csv</span>(<span class="st">"patients.csv"</span>)
+
+<span class="cm"># Features = inputs the model learns from</span>
+X = df[[<span class="st">"age"</span>, <span class="st">"symptoms"</span>, <span class="st">"vitals"</span>]]
+
+<span class="cm"># Labels = correct answers to predict</span>
+y = df[<span class="st">"diagnosis"</span>]   <span class="cm"># what we want to predict</span>
+
+<span class="cm"># Rule: X goes in, y comes out</span>
+<span class="cm"># Model learns: X → y mapping</span></pre>
+
+    <div class="box-blue">
+      <strong>💡 In your projects</strong>
+      RoshanAI's skill gap analysis is supervised learning — given a user's skills (X), predict which job roles they qualify for (y). The job market radar in SkillSync uses unsupervised clustering to group similar job listings together without predefined categories.
+    </div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Train / Validation / Test Split</div>
+    <div class="analogy">📚 Train set = textbook. Validation set = practice exam (tweak your study based on results). Test set = final exam. You only look at the final exam ONCE — at the very end. If you peek at it during study, your score is meaningless.</div>
+
+    <div class="sub-title">Standard Split Ratios</div>
+    <table>
+      <tr><th>Split</th><th>Typical %</th><th>Purpose</th></tr>
+      <tr><td><strong>Train</strong></td><td>70–80%</td><td>Model learns from this</td></tr>
+      <tr><td><strong>Validation</strong></td><td>10–15%</td><td>Tune hyperparameters</td></tr>
+      <tr><td><strong>Test</strong></td><td>10–20%</td><td>Final unbiased evaluation</td></tr>
+    </table>
+
+    <div class="sub-title">Scikit-learn Split</div>
+    <pre><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+
+<span class="cm"># Basic 80/20 train/test split</span>
+X_train, X_test, y_train, y_test = <span class="fn">train_test_split</span>(
+    X, y,
+    test_size=<span class="nm">0.2</span>,      <span class="cm"># 20% for testing</span>
+    random_state=<span class="nm">42</span>,    <span class="cm"># reproducible split</span>
+    stratify=y           <span class="cm"># keep class balance!</span>
+)
+
+<span class="kw">print</span>(X_train.shape)   <span class="cm"># (800, 3) — 800 rows</span>
+<span class="kw">print</span>(X_test.shape)    <span class="cm"># (200, 3) — 200 rows</span>
+
+<span class="cm"># Three-way split: train / val / test</span>
+X_train, X_temp, y_train, y_temp = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nm">0.3</span>, random_state=<span class="nm">42</span>
+)
+X_val, X_test, y_val, y_test = <span class="fn">train_test_split</span>(
+    X_temp, y_temp, test_size=<span class="nm">0.5</span>, random_state=<span class="nm">42</span>
+)
+<span class="cm"># Result: 70% train, 15% val, 15% test</span></pre>
+
+    <div class="box-red">
+      <strong>⚠️ Data Leakage — the silent killer</strong>
+      Data leakage means test data information "leaks" into training. Common causes: fitting a scaler on the full dataset before splitting (use fit on train, transform on test/val only), using future data to predict past events, including the target variable as a feature.
+    </div>
+
+    <div class="sub-title">Correct Scaling — No Leakage</div>
+    <pre><span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+
+scaler = <span class="fn">StandardScaler</span>()
+
+<span class="cm"># ✅ Fit ONLY on training data</span>
+X_train_scaled = scaler.<span class="fn">fit_transform</span>(X_train)
+
+<span class="cm"># ✅ Transform test with train's stats</span>
+X_test_scaled  = scaler.<span class="fn">transform</span>(X_test)
+
+<span class="cm"># ❌ WRONG — leaks test info into scaler</span>
+<span class="cm"># X_scaled = scaler.fit_transform(X_all)</span></pre>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title purple">Common Algorithms Quick Reference</div>
+
+    <div class="sub-title">Classification Algorithms</div>
+    <pre><span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
+<span class="kw">from</span> sklearn.svm <span class="kw">import</span> SVC
+
+<span class="cm"># Logistic Regression — simple, interpretable</span>
+lr = <span class="fn">LogisticRegression</span>()
+lr.<span class="fn">fit</span>(X_train, y_train)
+y_pred = lr.<span class="fn">predict</span>(X_test)
+
+<span class="cm"># Random Forest — powerful, handles non-linear</span>
+rf = <span class="fn">RandomForestClassifier</span>(n_estimators=<span class="nm">100</span>)
+rf.<span class="fn">fit</span>(X_train, y_train)
+
+<span class="cm"># SVM — great for high-dimensional data</span>
+svm = <span class="fn">SVC</span>(kernel=<span class="st">"rbf"</span>)
+svm.<span class="fn">fit</span>(X_train, y_train)</pre>
+
+    <div class="sub-title">Regression Algorithms</div>
+    <pre><span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LinearRegression, Ridge
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> GradientBoostingRegressor
+
+<span class="cm"># Linear Regression — baseline, fast</span>
+model = <span class="fn">LinearRegression</span>()
+model.<span class="fn">fit</span>(X_train, y_train)
+y_pred = model.<span class="fn">predict</span>(X_test)
+
+<span class="cm"># Ridge — linear + L2 regularization</span>
+ridge = <span class="fn">Ridge</span>(alpha=<span class="nm">1.0</span>)
+ridge.<span class="fn">fit</span>(X_train, y_train)</pre>
+
+    <div class="sub-title">Unsupervised — K-Means Clustering</div>
+    <pre><span class="kw">from</span> sklearn.cluster <span class="kw">import</span> KMeans
+
+<span class="cm"># Group job listings into 5 clusters</span>
+kmeans = <span class="fn">KMeans</span>(n_clusters=<span class="nm">5</span>, random_state=<span class="nm">42</span>)
+cluster_labels = kmeans.<span class="fn">fit_predict</span>(X)
+
+<span class="cm"># Each row now has a cluster number 0-4</span>
+<span class="cm"># No y needed — completely unsupervised</span></pre>
+
+    <div class="section-title orange" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between supervised and unsupervised learning?"</div>
+      <div class="a">Supervised learning uses labelled data — you provide inputs and correct answers, and the model learns the mapping. Classification predicts categories, regression predicts numbers. Unsupervised learning has no labels — the model discovers hidden structure like clusters or patterns. K-Means groups similar data points without being told what the groups are. I use the supervised/unsupervised distinction when designing features for RoshanAI's career intelligence tools.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "Why do we split data into train and test sets?"</div>
+      <div class="a">To measure how well the model generalises to new, unseen data. If we evaluated on the training data, the model could simply memorise it and score 100% while being useless in production. The test set simulates real-world data the model has never seen. The key rule is: fit preprocessing (like scaling) only on training data, never on test data — otherwise you leak information and your evaluation is dishonest.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Supervised = labelled data, predict y from X (classification or regression). Unsupervised = no labels, find patterns (clustering, dimensionality reduction). Split: 70–80% train, 20% test. Always stratify classification splits. Fit scalers on train only — never on full dataset.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #12 of 25 · Supervised vs Unsupervised · Machine Learning · Maryum Akram · Next: Sheet #13 — Overfitting, Underfitting, Cross-Validation</div>
+</div>
+</body>
+</html>

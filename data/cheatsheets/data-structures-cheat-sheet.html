@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Structures — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #0d3d3d; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #7cffd4; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #a0ffe0; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #7cffd4; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #0d3d3d; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.purple { background: #2d1b4e; }
+  .section-title.orange { background: #7a3500; }
+  .section-title.navy   { background: #0d2b5e; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #0d3d3d; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0fffe; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#0d3d3d;color:#7cffd4;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Python Internals · Cheat Sheet #6</div>
+      <div class="header-title">Data Structures</div>
+      <div class="header-sub">List · Tuple · Set · Dict · When to Use Each · Time Complexity</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">List — Ordered, Mutable</div>
+    <div class="analogy">📋 A list is like a to-do list — ordered, changeable, allows duplicates. You can add, remove, and reorder items freely.</div>
+
+    <pre><span class="cm"># Create</span>
+items = [<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>, <span class="st">"hello"</span>, <span class="nm">True</span>]
+
+<span class="cm"># Access — O(1) by index</span>
+items[<span class="nm">0</span>]    <span class="cm"># 1  (first)</span>
+items[-<span class="nm">1</span>]   <span class="cm"># True (last)</span>
+items[<span class="nm">1</span>:<span class="nm">3</span>]  <span class="cm"># [2, 3] (slice)</span>
+
+<span class="cm"># Modify</span>
+items.<span class="fn">append</span>(<span class="nm">4</span>)          <span class="cm"># add to end O(1)</span>
+items.<span class="fn">insert</span>(<span class="nm">0</span>, <span class="st">"new"</span>)   <span class="cm"># insert at index O(n)</span>
+items.<span class="fn">remove</span>(<span class="nm">2</span>)          <span class="cm"># remove by value O(n)</span>
+items.<span class="fn">pop</span>()               <span class="cm"># remove last O(1)</span>
+items.<span class="fn">pop</span>(<span class="nm">0</span>)              <span class="cm"># remove first O(n)</span>
+
+<span class="cm"># Search</span>
+<span class="nm">2</span> <span class="kw">in</span> items   <span class="cm"># O(n) — scans entire list</span>
+items.<span class="fn">index</span>(<span class="nm">2</span>)  <span class="cm"># position of value</span>
+
+<span class="cm"># Sort</span>
+items.<span class="fn">sort</span>()                    <span class="cm"># in-place</span>
+<span class="fn">sorted</span>(items)                   <span class="cm"># returns new</span>
+<span class="fn">sorted</span>(items, key=<span class="kw">lambda</span> x: -x) <span class="cm"># custom</span></pre>
+
+    <div class="sub-title">Tuple — Ordered, Immutable</div>
+    <div class="analogy">📦 A tuple is a sealed box. You can see what's inside but can't change it. Faster than lists, hashable, used for fixed data.</div>
+
+    <pre><span class="cm"># Create — parentheses or just commas</span>
+point = (<span class="nm">10</span>, <span class="nm">20</span>)
+coords = <span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>      <span class="cm"># also a tuple</span>
+single = (<span class="nm">42</span>,)          <span class="cm"># trailing comma needed!</span>
+
+<span class="cm"># Access — same as list</span>
+point[<span class="nm">0</span>]   <span class="cm"># 10</span>
+
+<span class="cm"># Unpack — very Pythonic</span>
+x, y = point          <span class="cm"># x=10, y=20</span>
+first, *rest = (<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>,<span class="nm">4</span>) <span class="cm"># first=1, rest=[2,3,4]</span>
+
+<span class="cm"># Tuple as dict key (list cannot!)</span>
+grid = {(<span class="nm">0</span>,<span class="nm">0</span>): <span class="st">"start"</span>, (<span class="nm">1</span>,<span class="nm">1</span>): <span class="st">"end"</span>}
+
+<span class="cm"># Named tuple — readable tuple fields</span>
+<span class="kw">from</span> collections <span class="kw">import</span> namedtuple
+Point = <span class="fn">namedtuple</span>(<span class="st">"Point"</span>, [<span class="st">"x"</span>, <span class="st">"y"</span>])
+p = <span class="fn">Point</span>(<span class="nm">3</span>, <span class="nm">4</span>)
+<span class="kw">print</span>(p.x, p.y)   <span class="cm"># 3  4</span></pre>
+
+    <div class="box-blue">
+      <strong>💡 Tuple vs List — when to choose</strong>
+      Use tuple for data that should NOT change: coordinates, RGB values, database rows, function return of multiple values. Use list when you need to add/remove items.
+    </div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title purple">Set — Unordered, Unique, Fast Lookup</div>
+    <div class="analogy">🎯 A set is like a bag of unique stickers. No duplicates allowed. No guaranteed order. But checking "is this sticker in the bag?" is instant — O(1).</div>
+
+    <pre><span class="cm"># Create</span>
+tags = {<span class="st">"python"</span>, <span class="st">"AI"</span>, <span class="st">"n8n"</span>}
+empty_set = <span class="fn">set</span>()       <span class="cm"># NOT {} — that's a dict!</span>
+from_list = <span class="fn">set</span>([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">2</span>,<span class="nm">3</span>])  <span class="cm"># {1,2,3} dedup</span>
+
+<span class="cm"># Add / Remove</span>
+tags.<span class="fn">add</span>(<span class="st">"supabase"</span>)
+tags.<span class="fn">remove</span>(<span class="st">"n8n"</span>)      <span class="cm"># KeyError if missing</span>
+tags.<span class="fn">discard</span>(<span class="st">"n8n"</span>)     <span class="cm"># safe — no error</span>
+
+<span class="cm"># Membership — O(1) ← key advantage!</span>
+<span class="st">"python"</span> <span class="kw">in</span> tags        <span class="cm"># True, instant</span>
+
+<span class="cm"># Set operations</span>
+a = {<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>}; b = {<span class="nm">2</span>, <span class="nm">3</span>, <span class="nm">4</span>}
+a | b    <span class="cm"># union        {1,2,3,4}</span>
+a &amp; b    <span class="cm"># intersection {2,3}</span>
+a - b    <span class="cm"># difference   {1}</span>
+a ^ b    <span class="cm"># symmetric diff {1,4}</span></pre>
+
+    <div class="box-green">
+      <strong>✅ Best use of sets — O(1) deduplication</strong>
+      Converting a list to a set removes duplicates instantly. Checking membership in a set is O(1) vs O(n) for a list. In your projects: deduplicating webhook event IDs, checking if a user already submitted.
+    </div>
+
+    <div class="sub-title">Dict — Key-Value, Fast Lookup</div>
+    <div class="analogy">📖 A dictionary is like a real dictionary — look up any word (key) and instantly get its definition (value). O(1) lookup by key.</div>
+
+    <pre><span class="cm"># Create</span>
+user = {<span class="st">"name"</span>: <span class="st">"Maryum"</span>, <span class="st">"role"</span>: <span class="st">"AI Eng"</span>}
+
+<span class="cm"># Access — safe vs unsafe</span>
+user[<span class="st">"name"</span>]               <span class="cm"># KeyError if missing</span>
+user.<span class="fn">get</span>(<span class="st">"age"</span>)            <span class="cm"># None — safe</span>
+user.<span class="fn">get</span>(<span class="st">"age"</span>, <span class="nm">0</span>)        <span class="cm"># 0 — default value</span>
+
+<span class="cm"># Add / Update / Delete</span>
+user[<span class="st">"city"</span>] = <span class="st">"Lahore"</span>   <span class="cm"># add or update</span>
+user.<span class="fn">update</span>({<span class="st">"age"</span>: <span class="nm">27</span>})  <span class="cm"># merge dict</span>
+<span class="kw">del</span> user[<span class="st">"city"</span>]           <span class="cm"># delete key</span>
+user.<span class="fn">pop</span>(<span class="st">"age"</span>, <span class="nm">None</span>)      <span class="cm"># safe delete</span>
+
+<span class="cm"># Iterate</span>
+<span class="kw">for</span> k, v <span class="kw">in</span> user.<span class="fn">items</span>():   <span class="cm"># key + value</span>
+    <span class="kw">print</span>(k, v)
+<span class="kw">for</span> k <span class="kw">in</span> user.<span class="fn">keys</span>():      <span class="cm"># keys only</span>
+<span class="kw">for</span> v <span class="kw">in</span> user.<span class="fn">values</span>():    <span class="cm"># values only</span>
+
+<span class="cm"># Dict comprehension</span>
+squares = {x: x**<span class="nm">2</span> <span class="kw">for</span> x <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">5</span>)}
+<span class="cm"># {0:0, 1:1, 2:4, 3:9, 4:16}</span></pre>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title orange">Comparison & When to Use</div>
+
+    <table>
+      <tr><th>Feature</th><th>List</th><th>Tuple</th><th>Set</th><th>Dict</th></tr>
+      <tr><td>Ordered</td><td>✅</td><td>✅</td><td>❌</td><td>✅ (3.7+)</td></tr>
+      <tr><td>Mutable</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Duplicates</td><td>✅</td><td>✅</td><td>❌</td><td>Keys: ❌</td></tr>
+      <tr><td>Hashable</td><td>❌</td><td>✅</td><td>❌</td><td>❌</td></tr>
+      <tr><td>Lookup</td><td>O(n)</td><td>O(n)</td><td>O(1)</td><td>O(1)</td></tr>
+      <tr><td>Syntax</td><td><span class="hl">[ ]</span></td><td><span class="hl">( )</span></td><td><span class="hl">{ }</span></td><td><span class="hl">{k:v}</span></td></tr>
+    </table>
+
+    <div class="sub-title">Choose the Right Structure</div>
+    <table>
+      <tr><th>Situation</th><th>Use</th></tr>
+      <tr><td>Ordered collection, may change</td><td>list</td></tr>
+      <tr><td>Fixed data, multiple return values</td><td>tuple</td></tr>
+      <tr><td>Remove duplicates</td><td>set</td></tr>
+      <tr><td>Fast membership check</td><td>set</td></tr>
+      <tr><td>Lookup by name/key</td><td>dict</td></tr>
+      <tr><td>Count occurrences</td><td>Counter (dict)</td></tr>
+      <tr><td>Dict key with multiple values</td><td>tuple as key</td></tr>
+    </table>
+
+    <div class="sub-title">Special Dict Types</div>
+    <pre><span class="kw">from</span> collections <span class="kw">import</span> defaultdict, Counter, OrderedDict
+
+<span class="cm"># defaultdict — no KeyError on missing key</span>
+groups = <span class="fn">defaultdict</span>(list)
+groups[<span class="st">"fruits"</span>].<span class="fn">append</span>(<span class="st">"apple"</span>)  <span class="cm"># no error</span>
+
+<span class="cm"># Counter — count frequencies</span>
+words = [<span class="st">"a"</span>,<span class="st">"b"</span>,<span class="st">"a"</span>,<span class="st">"c"</span>,<span class="st">"a"</span>]
+counts = <span class="fn">Counter</span>(words)
+<span class="cm"># Counter({'a':3, 'b':1, 'c':1})</span>
+counts.<span class="fn">most_common</span>(<span class="nm">2</span>)  <span class="cm"># top 2 items</span></pre>
+
+    <div class="section-title navy" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "When would you use a set instead of a list?"</div>
+      <div class="a">When I need O(1) membership checks or automatic deduplication. In my complaint management system I use a set of processed complaint IDs — checking if an ID was already handled is O(1) with a set vs O(n) scanning a list. Sets also make deduplication trivial: just convert the list.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between a tuple and a list?"</div>
+      <div class="a">Tuples are immutable — once created you can't change them — which makes them hashable and usable as dict keys. Lists are mutable. Tuples are slightly faster to create and access. I use tuples for fixed structured data like coordinates or function return values, and lists when I need to add or remove items.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      List = ordered mutable O(n) lookup. Tuple = ordered immutable hashable. Set = unordered unique O(1) lookup. Dict = key-value O(1) lookup. Pick based on: do you need order? duplicates? fast lookup? mutability?
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #6 of 25 · Data Structures · Python Internals · Maryum Akram · Next: Sheet #7 — List Comprehensions + OOP</div>
+</div>
+</body>
+</html>

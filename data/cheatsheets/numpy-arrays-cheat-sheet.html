@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NumPy Memory + Arrays — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #002b3d; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #4dd0e1; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #80deea; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #4dd0e1; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #002b3d; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.purple { background: #2d1b4e; }
+  .section-title.green  { background: #1a3d1a; }
+  .section-title.orange { background: #7a3500; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #002b3d; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0feff; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#002b3d;color:#4dd0e1;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Python Internals · Cheat Sheet #8</div>
+      <div class="header-title">NumPy Memory + Arrays</div>
+      <div class="header-sub">Vectorization · Broadcasting · Memory Sharing · Views vs Copies · Axes</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Why NumPy is Fast</div>
+    <div class="analogy">🏎️ A Python for loop is like sending one worker to complete each task one at a time. NumPy vectorization is like sending 1000 workers simultaneously — one instruction, all elements processed at once in optimized C code.</div>
+
+    <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># ❌ Slow — Python loop</span>
+result = []
+<span class="kw">for</span> x <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1000000</span>):
+    result.<span class="fn">append</span>(x * <span class="nm">2</span>)
+
+<span class="cm"># ✅ Fast — NumPy vectorized (100x faster)</span>
+arr = np.<span class="fn">arange</span>(<span class="nm">1000000</span>)
+result = arr * <span class="nm">2</span>   <span class="cm"># entire array at once</span></pre>
+
+    <div class="sub-title">Creating Arrays</div>
+    <pre><span class="cm"># From list</span>
+a = np.<span class="fn">array</span>([<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>, <span class="nm">4</span>, <span class="nm">5</span>])
+
+<span class="cm"># Range of values</span>
+np.<span class="fn">arange</span>(<span class="nm">0</span>, <span class="nm">10</span>, <span class="nm">2</span>)    <span class="cm"># [0,2,4,6,8]</span>
+np.<span class="fn">linspace</span>(<span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">5</span>)  <span class="cm"># [0, .25, .5, .75, 1]</span>
+
+<span class="cm"># Special arrays</span>
+np.<span class="fn">zeros</span>((<span class="nm">3</span>, <span class="nm">4</span>))      <span class="cm"># 3×4 array of 0s</span>
+np.<span class="fn">ones</span>((<span class="nm">2</span>, <span class="nm">3</span>))       <span class="cm"># 2×3 array of 1s</span>
+np.<span class="fn">eye</span>(<span class="nm">3</span>)             <span class="cm"># 3×3 identity matrix</span>
+np.random.<span class="fn">rand</span>(<span class="nm">3</span>,<span class="nm">4</span>)  <span class="cm"># 3×4 random 0–1</span>
+
+<span class="cm"># 2D array (matrix)</span>
+matrix = np.<span class="fn">array</span>([[<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>],
+                    [<span class="nm">4</span>,<span class="nm">5</span>,<span class="nm">6</span>]])</pre>
+
+    <div class="sub-title">Key Array Properties</div>
+    <pre>a = np.<span class="fn">array</span>([[<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>],[<span class="nm">4</span>,<span class="nm">5</span>,<span class="nm">6</span>]])
+
+a.shape    <span class="cm"># (2, 3) — rows, cols</span>
+a.ndim     <span class="cm"># 2 — number of dimensions</span>
+a.size     <span class="cm"># 6 — total elements</span>
+a.dtype    <span class="cm"># dtype('int64') — data type</span>
+
+<span class="cm"># Change dtype</span>
+a.<span class="fn">astype</span>(<span class="fn">float</span>)     <span class="cm"># int → float</span>
+a.<span class="fn">astype</span>(np.float32) <span class="cm"># float64 → float32 (less memory)</span></pre>
+
+    <div class="box-blue">
+      <strong>💡 dtype matters for ML models</strong>
+      Neural networks expect <span class="hl">float32</span> not <span class="hl">float64</span>. Always check <span class="hl">.dtype</span> when feeding data to PyTorch or TensorFlow — a dtype mismatch causes hard-to-debug errors.
+    </div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title purple">Indexing, Slicing & Reshaping</div>
+
+    <pre><span class="cm"># 1D indexing</span>
+a = np.<span class="fn">array</span>([<span class="nm">10</span>,<span class="nm">20</span>,<span class="nm">30</span>,<span class="nm">40</span>,<span class="nm">50</span>])
+a[<span class="nm">0</span>]      <span class="cm"># 10</span>
+a[-<span class="nm">1</span>]     <span class="cm"># 50</span>
+a[<span class="nm">1</span>:<span class="nm">4</span>]    <span class="cm"># [20, 30, 40]</span>
+a[::<span class="nm">2</span>]    <span class="cm"># [10, 30, 50] every 2nd</span>
+
+<span class="cm"># 2D indexing [row, col]</span>
+m = np.<span class="fn">array</span>([[<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>],[<span class="nm">4</span>,<span class="nm">5</span>,<span class="nm">6</span>],[<span class="nm">7</span>,<span class="nm">8</span>,<span class="nm">9</span>]])
+m[<span class="nm">0</span>, <span class="nm">1</span>]   <span class="cm"># 2 — row 0, col 1</span>
+m[<span class="nm">1</span>, :]   <span class="cm"># [4,5,6] — entire row 1</span>
+m[:, <span class="nm">0</span>]   <span class="cm"># [1,4,7] — entire col 0</span>
+m[<span class="nm">0</span>:<span class="nm">2</span>, <span class="nm">1</span>:<span class="nm">3</span>] <span class="cm"># [[2,3],[5,6]] submatrix</span>
+
+<span class="cm"># Boolean indexing — filter by condition</span>
+scores = np.<span class="fn">array</span>([<span class="nm">45</span>,<span class="nm">78</span>,<span class="nm">92</span>,<span class="nm">55</span>,<span class="nm">88</span>])
+high   = scores[scores > <span class="nm">75</span>]  <span class="cm"># [78, 92, 88]</span>
+
+<span class="cm"># Reshape — change dimensions, same data</span>
+a = np.<span class="fn">arange</span>(<span class="nm">12</span>)         <span class="cm"># [0..11]</span>
+b = a.<span class="fn">reshape</span>(<span class="nm">3</span>, <span class="nm">4</span>)       <span class="cm"># 3 rows, 4 cols</span>
+c = a.<span class="fn">reshape</span>(<span class="nm">2</span>, <span class="nm">2</span>, <span class="nm">3</span>)    <span class="cm"># 3D: 2×2×3</span>
+d = a.<span class="fn">reshape</span>(-<span class="nm">1</span>, <span class="nm">4</span>)      <span class="cm"># -1 = infer rows</span>
+e = a.<span class="fn">flatten</span>()           <span class="cm"># always a copy, 1D</span>
+f = a.<span class="fn">ravel</span>()             <span class="cm"># view if possible, 1D</span></pre>
+
+    <div class="sub-title">Broadcasting — The Magic Rule</div>
+    <div class="analogy">📡 Broadcasting lets NumPy work with arrays of different shapes — it "stretches" the smaller array to match the larger one, without actually copying data.</div>
+
+    <pre><span class="cm"># Scalar broadcast to whole array</span>
+a = np.<span class="fn">array</span>([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>])
+a + <span class="nm">10</span>   <span class="cm"># [11, 12, 13] — 10 broadcast to all</span>
+
+<span class="cm"># 1D broadcast to 2D</span>
+matrix = np.<span class="fn">ones</span>((<span class="nm">3</span>,<span class="nm">3</span>))
+row    = np.<span class="fn">array</span>([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>])
+matrix + row
+<span class="cm"># row added to EACH row of matrix</span>
+<span class="cm"># [[2,3,4],[2,3,4],[2,3,4]]</span>
+
+<span class="cm"># Broadcasting rule:</span>
+<span class="cm"># shapes align from right, 1s stretch</span>
+<span class="cm"># (3,3) + (3,) → (3,3) + (1,3) → (3,3) ✅</span>
+<span class="cm"># (3,3) + (2,) → Error ❌ — incompatible</span></pre>
+
+    <div class="box-green">
+      <strong>✅ axis= — the most important NumPy parameter</strong>
+      <span class="hl">axis=0</span> = operate down rows (collapse rows → result per column).<br>
+      <span class="hl">axis=1</span> = operate across columns (collapse cols → result per row).<br>
+      <span class="hl">np.sum(m, axis=0)</span> → column sums. <span class="hl">np.sum(m, axis=1)</span> → row sums.
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Memory: Views vs Copies</div>
+    <div class="analogy">👁️ A view is a window into the same memory. A copy is a completely new block of memory. Changing a view changes the original. Changing a copy does not.</div>
+
+    <pre><span class="cm"># SLICE = VIEW (shares memory)</span>
+original = np.<span class="fn">array</span>([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>,<span class="nm">4</span>,<span class="nm">5</span>])
+view = original[<span class="nm">1</span>:<span class="nm">4</span>]   <span class="cm"># [2,3,4]</span>
+view[<span class="nm">0</span>] = <span class="nm">99</span>
+<span class="kw">print</span>(original)  <span class="cm"># [1,99,3,4,5] ← changed!</span>
+
+<span class="cm"># .copy() = new memory block</span>
+safe = original[<span class="nm">1</span>:<span class="nm">4</span>].<span class="fn">copy</span>()
+safe[<span class="nm">0</span>] = <span class="nm">0</span>
+<span class="kw">print</span>(original)  <span class="cm"># unchanged ✅</span>
+
+<span class="cm"># reshape usually returns a VIEW</span>
+a = np.<span class="fn">arange</span>(<span class="nm">6</span>)
+b = a.<span class="fn">reshape</span>(<span class="nm">2</span>,<span class="nm">3</span>)   <span class="cm"># view!</span>
+b[<span class="nm">0</span>,<span class="nm">0</span>] = <span class="nm">99</span>
+<span class="kw">print</span>(a)  <span class="cm"># [99,1,2,3,4,5] ← changed!</span>
+
+<span class="cm"># Check if view or copy</span>
+<span class="kw">print</span>(b.base <span class="kw">is</span> a)  <span class="cm"># True = view</span></pre>
+
+    <div class="sub-title">Common Math Operations</div>
+    <pre>a = np.<span class="fn">array</span>([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>,<span class="nm">4</span>])
+
+<span class="cm"># Statistics</span>
+np.<span class="fn">mean</span>(a)       <span class="cm"># 2.5</span>
+np.<span class="fn">std</span>(a)        <span class="cm"># standard deviation</span>
+np.<span class="fn">var</span>(a)        <span class="cm"># variance</span>
+np.<span class="fn">median</span>(a)     <span class="cm"># 2.5</span>
+np.<span class="fn">min</span>(a)        <span class="cm"># 1</span>
+np.<span class="fn">max</span>(a)        <span class="cm"># 4</span>
+np.<span class="fn">sum</span>(a)        <span class="cm"># 10</span>
+np.<span class="fn">argmax</span>(a)    <span class="cm"># 3 (index of max)</span>
+np.<span class="fn">argmin</span>(a)    <span class="cm"># 0 (index of min)</span>
+
+<span class="cm"># Element-wise math</span>
+np.<span class="fn">sqrt</span>(a)       <span class="cm"># square root each</span>
+np.<span class="fn">exp</span>(a)        <span class="cm"># e^x each</span>
+np.<span class="fn">log</span>(a)        <span class="cm"># natural log each</span>
+np.<span class="fn">abs</span>(a)        <span class="cm"># absolute value</span>
+
+<span class="cm"># Matrix operations</span>
+A = np.<span class="fn">array</span>([[<span class="nm">1</span>,<span class="nm">2</span>],[<span class="nm">3</span>,<span class="nm">4</span>]])
+B = np.<span class="fn">array</span>([[<span class="nm">5</span>,<span class="nm">6</span>],[<span class="nm">7</span>,<span class="nm">8</span>]])
+A @ B          <span class="cm"># matrix multiply</span>
+A * B          <span class="cm"># element-wise multiply</span>
+A.T            <span class="cm"># transpose</span>
+np.<span class="fn">dot</span>(A, B)   <span class="cm"># dot product</span></pre>
+
+    <div class="section-title orange" style="margin-top:8px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is vectorization in NumPy?"</div>
+      <div class="a">Vectorization means applying an operation to an entire array at once instead of looping element by element. NumPy executes these operations in optimized C code, which can be 100x faster than Python loops. For example, multiplying a million-element array by 2 with arr * 2 is far faster than a for loop doing the same thing.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is a view vs a copy in NumPy?"</div>
+      <div class="a">A view shares the underlying memory with the original array — modifying the view modifies the original. A slice of an array returns a view by default. A copy is a completely independent array — use .copy() to get one. This matters in ML pipelines where accidentally modifying training data through a view can corrupt your dataset.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      NumPy = fast arrays via vectorized C operations. No Python loops needed. Slices = views (shared memory). .copy() = independent. axis=0 collapses rows, axis=1 collapses columns. Broadcasting stretches smaller arrays to match larger ones.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #8 of 25 · NumPy Memory + Arrays · Python Internals Complete ✅ · Maryum Akram · Next: Sheet #9 — HTTP Status Codes + Error Handling</div>
+</div>
+</body>
+</html>

@@ -51,3 +51,7 @@ Use the same repository in either tool. Start with `AGENTS.md` and `docs/NEXT_TA
 ## Verification
 
 `npm run check` verifies JS syntax and content structure. `npm test` checks legacy backup migration, stable-ID tracking, navigation rendering, import validation and mocked cloud conflict handling. Live Supabase authentication, SQL/RLS isolation and cross-device backup must be verified after configuration; mocked tests do not establish database security.
+
+## Personal cheat sheet collection
+
+The Cheat sheets page includes 25 uploaded HTML sheets with category filters and search, plus the original quick-reference summaries. Full sheets open in a new tab with their original formatting. Edit the files in `data/cheatsheets/` and their metadata in `data/cheatsheet-catalog.json`. See [the duplicate review](docs/CHEATSHEET_IMPORT.md) for the 10 PDF/HTML counterpart pairs omitted from duplicate publication.

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overfitting, Underfitting, Cross-Validation — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #2a0a2a; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #ea80fc; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #f3b8ff; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #ea80fc; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #2a0a2a; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.green  { background: #0a2a1a; }
+  .section-title.orange { background: #7a3500; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #2a0a2a; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #fdf4ff; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#2a0a2a;color:#ea80fc;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:6px 0}
+  .fit-card{border-radius:4px;padding:7px;font-size:10px;text-align:center}
+  .fit-under{background:#fdecea;border:1.5px solid #ef9a9a}
+  .fit-good{background:#e8f5e9;border:1.5px solid #a5d6a7}
+  .fit-over{background:#fff9c4;border:1.5px solid #f9a825}
+  .fit-label{font-weight:800;font-size:10px;margin-bottom:3px}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Machine Learning · Cheat Sheet #13</div>
+      <div class="header-title">Overfitting, Underfitting + Cross-Validation</div>
+      <div class="header-sub">Bias-Variance Tradeoff · Regularization · k-Fold CV · Early Stopping</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Fitting Problems</div>
+    <div class="analogy">📝 A student who memorises every exam answer but can't solve new problems = overfitting. A student who barely studied and gets everything wrong = underfitting. The goal is a student who understood the concepts and applies them to new problems.</div>
+
+    <div class="three-col">
+      <div class="fit-card fit-under">
+        <div class="fit-label" style="color:#b71c1c">UNDERFIT</div>
+        Too simple.<br>High train error.<br>High test error.<br><em>High Bias.</em>
+      </div>
+      <div class="fit-card fit-good">
+        <div class="fit-label" style="color:#1b5e20">✅ GOOD FIT</div>
+        Just right.<br>Low train error.<br>Low test error.<br><em>Balanced.</em>
+      </div>
+      <div class="fit-card fit-over">
+        <div class="fit-label" style="color:#e65100">OVERFIT</div>
+        Too complex.<br>Low train error.<br>High test error.<br><em>High Variance.</em>
+      </div>
+    </div>
+
+    <div class="sub-title">Bias-Variance Tradeoff</div>
+    <table>
+      <tr><th></th><th>High Bias</th><th>High Variance</th></tr>
+      <tr><td><strong>Also called</strong></td><td>Underfitting</td><td>Overfitting</td></tr>
+      <tr><td><strong>Train error</strong></td><td>High</td><td>Low</td></tr>
+      <tr><td><strong>Test error</strong></td><td>High</td><td>High</td></tr>
+      <tr><td><strong>Model</strong></td><td>Too simple</td><td>Too complex</td></tr>
+      <tr><td><strong>Fix</strong></td><td>More complexity</td><td>Regularization</td></tr>
+    </table>
+
+    <div class="sub-title">Diagnosing with Learning Curves</div>
+    <pre><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> learning_curve
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+train_sizes, train_scores, val_scores = <span class="fn">learning_curve</span>(
+    model, X, y, cv=<span class="nm">5</span>,
+    train_sizes=np.<span class="fn">linspace</span>(<span class="nm">0.1</span>, <span class="nm">1.0</span>, <span class="nm">10</span>)
+)
+
+<span class="cm"># Diagnosis:</span>
+<span class="cm"># Both curves high error → underfitting (bias)</span>
+<span class="cm"># Large gap between train/val → overfitting (variance)</span>
+<span class="cm"># Curves converge at low error → good fit</span></pre>
+
+    <div class="box-red">
+      <strong>⚠️ The classic overfitting signal</strong>
+      Training accuracy = 99%, validation accuracy = 65%. The model memorised the training data and cannot generalise. This gap between train and val performance IS overfitting. Fix it with regularization, dropout, or more data.
+    </div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Fixes for Overfitting</div>
+
+    <div class="sub-title">1 — Regularization (L1 and L2)</div>
+    <div class="analogy">⚖️ Regularization adds a penalty for complexity — it discourages the model from assigning huge weights to any one feature. Like telling a student: "don't rely on memorising one trick — learn the general concept."</div>
+
+    <pre><span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> Ridge, Lasso
+
+<span class="cm"># L2 Regularization — Ridge</span>
+<span class="cm"># Penalty = alpha × sum(weights²)</span>
+<span class="cm"># Shrinks all weights, none to zero</span>
+ridge = <span class="fn">Ridge</span>(alpha=<span class="nm">1.0</span>)
+ridge.<span class="fn">fit</span>(X_train, y_train)
+
+<span class="cm"># L1 Regularization — Lasso</span>
+<span class="cm"># Penalty = alpha × sum(|weights|)</span>
+<span class="cm"># Drives irrelevant feature weights to zero</span>
+<span class="cm"># Automatic feature selection!</span>
+lasso = <span class="fn">Lasso</span>(alpha=<span class="nm">0.1</span>)
+lasso.<span class="fn">fit</span>(X_train, y_train)</pre>
+
+    <table>
+      <tr><th></th><th>L1 (Lasso)</th><th>L2 (Ridge)</th></tr>
+      <tr><td>Penalty</td><td>|weights|</td><td>weights²</td></tr>
+      <tr><td>Effect</td><td>Zeros out features</td><td>Shrinks all weights</td></tr>
+      <tr><td>Use when</td><td>Many irrelevant features</td><td>All features matter</td></tr>
+    </table>
+
+    <div class="sub-title">2 — Dropout (Neural Networks)</div>
+    <pre><span class="kw">import</span> torch.nn <span class="kw">as</span> nn
+
+<span class="cm"># Randomly zero out 20% of neurons each pass</span>
+<span class="cm"># Forces network to learn redundant representations</span>
+model = nn.<span class="fn">Sequential</span>(
+    nn.<span class="fn">Linear</span>(<span class="nm">128</span>, <span class="nm">64</span>),
+    nn.<span class="fn">ReLU</span>(),
+    nn.<span class="fn">Dropout</span>(p=<span class="nm">0.2</span>),   <span class="cm"># 20% dropout</span>
+    nn.<span class="fn">Linear</span>(<span class="nm">64</span>, <span class="nm">10</span>)
+)</pre>
+
+    <div class="sub-title">3 — Early Stopping</div>
+    <pre><span class="cm"># Stop training when val loss stops improving</span>
+<span class="cm"># Prevents memorising noise in training data</span>
+best_val_loss = <span class="fn">float</span>(<span class="st">'inf'</span>)
+patience = <span class="nm">5</span>
+wait = <span class="nm">0</span>
+
+<span class="kw">for</span> epoch <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">100</span>):
+    val_loss = <span class="fn">evaluate</span>(model, val_loader)
+
+    <span class="kw">if</span> val_loss < best_val_loss:
+        best_val_loss = val_loss
+        wait = <span class="nm">0</span>
+        <span class="fn">save_checkpoint</span>(model)  <span class="cm"># save best</span>
+    <span class="kw">else</span>:
+        wait += <span class="nm">1</span>
+        <span class="kw">if</span> wait >= patience:
+            <span class="kw">print</span>(<span class="st">"Early stopping triggered"</span>)
+            <span class="kw">break</span></pre>
+
+    <div class="box-green">
+      <strong>✅ Other overfitting fixes</strong>
+      Get more training data (most effective). Data augmentation (flip/rotate images). Reduce model complexity (fewer layers/neurons). Ensemble methods (Random Forest averages many trees).
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Cross-Validation</div>
+    <div class="analogy">🔄 k-Fold CV is like taking 5 different exams from the same material. Each time, a different portion of data is the test set. Average all 5 scores for a reliable estimate of how well the model truly generalises.</div>
+
+    <div class="sub-title">k-Fold Cross-Validation</div>
+    <pre><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> cross_val_score
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
+
+model = <span class="fn">RandomForestClassifier</span>(n_estimators=<span class="nm">100</span>)
+
+<span class="cm"># 5-fold CV — splits data into 5 chunks</span>
+<span class="cm"># trains on 4, tests on 1, rotates 5 times</span>
+scores = <span class="fn">cross_val_score</span>(
+    model, X, y,
+    cv=<span class="nm">5</span>,            <span class="cm"># 5 folds</span>
+    scoring=<span class="st">'accuracy'</span>
+)
+
+<span class="kw">print</span>(scores)
+<span class="cm"># [0.91, 0.89, 0.93, 0.88, 0.92]</span>
+
+<span class="kw">print</span>(<span class="fn">f</span><span class="st">"Mean: {scores.mean():.3f}"</span>)
+<span class="cm"># Mean: 0.906</span>
+<span class="kw">print</span>(<span class="fn">f</span><span class="st">"Std:  {scores.std():.3f}"</span>)
+<span class="cm"># Std: 0.018 — low = consistent model</span></pre>
+
+    <div class="sub-title">Stratified k-Fold (For Imbalanced Classes)</div>
+    <pre><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> StratifiedKFold
+
+<span class="cm"># Ensures each fold has same class proportion</span>
+<span class="cm"># Essential for imbalanced datasets</span>
+skf = <span class="fn">StratifiedKFold</span>(n_splits=<span class="nm">5</span>, shuffle=<span class="nm">True</span>)
+
+<span class="kw">for</span> train_idx, val_idx <span class="kw">in</span> skf.<span class="fn">split</span>(X, y):
+    X_train = X[train_idx]
+    X_val   = X[val_idx]
+    <span class="cm"># Each fold has balanced classes</span></pre>
+
+    <div class="sub-title">CV Types Comparison</div>
+    <table>
+      <tr><th>Type</th><th>Best For</th></tr>
+      <tr><td><strong>k-Fold</strong></td><td>General use, balanced data</td></tr>
+      <tr><td><strong>Stratified k-Fold</strong></td><td>Imbalanced class labels</td></tr>
+      <tr><td><strong>Leave-One-Out</strong></td><td>Tiny datasets (&lt;100 rows)</td></tr>
+      <tr><td><strong>Time Series Split</strong></td><td>Sequential/temporal data</td></tr>
+    </table>
+
+    <div class="section-title orange" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is overfitting and how do you fix it?"</div>
+      <div class="a">Overfitting is when a model performs well on training data but poorly on new data — it has memorised noise instead of learning patterns. The signal is a large gap between training accuracy and validation accuracy. Fixes include regularization (L1/L2), dropout for neural networks, early stopping, reducing model complexity, and getting more training data. The best fix depends on why the model is overfitting.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is cross-validation and why is it better than a single train/test split?"</div>
+      <div class="a">Cross-validation trains and evaluates the model multiple times on different subsets of the data. In 5-fold CV, the data is split into 5 chunks — the model trains on 4 and tests on 1, repeating 5 times. The average score is much more reliable than a single split, which can be lucky or unlucky depending on which data ended up in the test set. CV also uses all data for both training and validation.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Underfitting = high bias, too simple, both errors high. Overfitting = high variance, memorised training data, gap between train/val. Fix overfitting: L1/L2 regularization, dropout, early stopping, more data. Cross-validation = rotate test fold k times, average scores for reliable evaluation.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #13 of 25 · Overfitting + Cross-Validation · Machine Learning · Maryum Akram · Next: Sheet #14 — Precision, Recall, F1 + Scikit-learn</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transfer Learning + Fine-Tuning — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #001a0a; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #69f0ae; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #b9f6ca; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #69f0ae; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #001a0a; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.purple { background: #2a0a2a; }
+  .section-title.orange { background: #7a3500; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #001a0a; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0fff4; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#001a0a;color:#69f0ae;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Deep Learning · Cheat Sheet #18</div>
+      <div class="header-title">Transfer Learning + Fine-Tuning</div>
+      <div class="header-sub">Feature Extraction · Layer Freezing · Hugging Face · LoRA · When to Use Each</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">What is Transfer Learning?</div>
+    <div class="analogy">🎓 Transfer learning is like hiring a medical doctor to be a hospital administrator. They don't start from zero — they already understand medicine, human biology, and procedures. You just train them on the admin-specific parts. The pre-trained knowledge transfers to the new task.</div>
+
+    <p>A model pre-trained on a large dataset (e.g. ImageNet, all of Wikipedia) has already learned general features — edges, shapes, grammar, semantics. You reuse these features for your specific task instead of training from scratch.</p>
+
+    <div class="sub-title">Two Strategies</div>
+    <table>
+      <tr><th>Strategy</th><th>What Changes</th><th>Use When</th></tr>
+      <tr><td><strong>Feature Extraction</strong></td><td>Freeze all layers. Only train a new output head.</td><td>Small dataset, similar domain</td></tr>
+      <tr><td><strong>Fine-Tuning</strong></td><td>Unfreeze some/all layers. Retrain with low LR.</td><td>More data, different domain</td></tr>
+    </table>
+
+    <div class="sub-title">PyTorch — Feature Extraction (Freeze All)</div>
+    <pre><span class="kw">import</span> torchvision.models <span class="kw">as</span> models
+<span class="kw">import</span> torch.nn <span class="kw">as</span> nn
+
+<span class="cm"># Load pretrained ResNet</span>
+model = models.<span class="fn">resnet18</span>(pretrained=<span class="nm">True</span>)
+
+<span class="cm"># ✅ Freeze ALL layers</span>
+<span class="kw">for</span> param <span class="kw">in</span> model.<span class="fn">parameters</span>():
+    param.requires_grad = <span class="nm">False</span>
+
+<span class="cm"># Replace final layer with your task's head</span>
+<span class="cm"># ResNet18 has 512 features → your num_classes</span>
+num_classes = <span class="nm">4</span>  <span class="cm"># e.g. triage severity levels</span>
+model.fc = nn.<span class="fn">Linear</span>(<span class="nm">512</span>, num_classes)
+
+<span class="cm"># Now only model.fc has requires_grad=True</span>
+<span class="cm"># Only the new head will be trained</span></pre>
+
+    <div class="sub-title">PyTorch — Fine-Tuning (Unfreeze Last N Layers)</div>
+    <pre><span class="cm"># Unfreeze last 2 layers only</span>
+<span class="kw">for</span> name, param <span class="kw">in</span> model.<span class="fn">named_parameters</span>():
+    <span class="kw">if</span> <span class="st">"layer4"</span> <span class="kw">in</span> name <span class="kw">or</span> <span class="st">"fc"</span> <span class="kw">in</span> name:
+        param.requires_grad = <span class="nm">True</span>
+    <span class="kw">else</span>:
+        param.requires_grad = <span class="nm">False</span>
+
+<span class="cm"># Use lower LR for fine-tuning</span>
+<span class="cm"># Don't destroy the pretrained features!</span>
+optimizer = optim.<span class="fn">Adam</span>(
+    <span class="fn">filter</span>(<span class="kw">lambda</span> p: p.requires_grad,
+           model.<span class="fn">parameters</span>()),
+    lr=<span class="nm">1e-4</span>   <span class="cm"># much lower than training from scratch</span>
+)</pre>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Hugging Face Fine-Tuning</div>
+    <div class="analogy">🤗 Hugging Face makes transfer learning for NLP as easy as 10 lines. Load a model, load a dataset, call .train(). You're fine-tuning a billion-parameter model on your custom task in minutes.</div>
+
+    <div class="sub-title">Full Fine-Tuning with Transformers</div>
+    <pre><span class="kw">from</span> transformers <span class="kw">import</span> (
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
+    TrainingArguments, Trainer
+)
+<span class="kw">from</span> datasets <span class="kw">import</span> load_dataset
+
+<span class="cm"># 1. Load model + tokenizer</span>
+model_id = <span class="st">"distilbert-base-uncased"</span>
+tokenizer = AutoTokenizer.<span class="fn">from_pretrained</span>(model_id)
+model = AutoModelForSequenceClassification.<span class="fn">from_pretrained</span>(
+    model_id, num_labels=<span class="nm">2</span>
+)
+
+<span class="cm"># 2. Tokenize dataset</span>
+dataset = <span class="fn">load_dataset</span>(<span class="st">"imdb"</span>)
+<span class="kw">def</span> <span class="fn">tokenize</span>(batch):
+    <span class="kw">return</span> <span class="fn">tokenizer</span>(batch[<span class="st">"text"</span>], truncation=<span class="nm">True</span>)
+dataset = dataset.<span class="fn">map</span>(tokenize, batched=<span class="nm">True</span>)
+
+<span class="cm"># 3. Training config</span>
+args = <span class="fn">TrainingArguments</span>(
+    output_dir=<span class="st">"./results"</span>,
+    num_train_epochs=<span class="nm">3</span>,
+    per_device_train_batch_size=<span class="nm">16</span>,
+    learning_rate=<span class="nm">2e-5</span>,         <span class="cm"># low LR!</span>
+    evaluation_strategy=<span class="st">"epoch"</span>
+)
+
+<span class="cm"># 4. Train</span>
+trainer = <span class="fn">Trainer</span>(
+    model=model, args=args,
+    train_dataset=dataset[<span class="st">"train"</span>],
+    eval_dataset=dataset[<span class="st">"test"</span>]
+)
+trainer.<span class="fn">train</span>()</pre>
+
+    <div class="box-blue">
+      <strong>💡 Why lr=2e-5 for fine-tuning?</strong>
+      Pre-trained weights encode years of training on billions of tokens. A high learning rate would catastrophically overwrite these features. Use 1e-5 to 5e-5 for fine-tuning transformers — 10–100x lower than training from scratch.
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title purple">LoRA — Parameter-Efficient Fine-Tuning</div>
+    <div class="analogy">🎯 LoRA is like adding sticky notes to a textbook instead of rewriting it. Instead of updating billions of weights, LoRA adds tiny learnable matrices to key layers. Only these small matrices train — 99% of the model stays frozen. Same quality, 100x cheaper.</div>
+
+    <pre><span class="kw">from</span> peft <span class="kw">import</span> get_peft_model, LoraConfig
+
+<span class="cm"># Configure LoRA</span>
+lora_config = <span class="fn">LoraConfig</span>(
+    r=<span class="nm">16</span>,              <span class="cm"># rank — controls capacity</span>
+    lora_alpha=<span class="nm">32</span>,     <span class="cm"># scaling factor</span>
+    target_modules=[<span class="st">"q_proj"</span>, <span class="st">"v_proj"</span>],
+    lora_dropout=<span class="nm">0.1</span>,
+    task_type=<span class="st">"CAUSAL_LM"</span>
+)
+
+<span class="cm"># Wrap model with LoRA</span>
+peft_model = <span class="fn">get_peft_model</span>(base_model, lora_config)
+peft_model.<span class="fn">print_trainable_parameters</span>()
+<span class="cm"># trainable params: 4.2M / 7B (0.06%) ← tiny!</span></pre>
+
+    <div class="sub-title">Transfer Learning Decision Guide</div>
+    <table>
+      <tr><th>Situation</th><th>Strategy</th><th>LR</th></tr>
+      <tr><td>Small dataset, similar domain</td><td>Feature extraction (freeze all)</td><td>1e-3</td></tr>
+      <tr><td>Medium dataset, similar domain</td><td>Fine-tune last few layers</td><td>1e-4</td></tr>
+      <tr><td>Large dataset, different domain</td><td>Fine-tune all layers</td><td>1e-5</td></tr>
+      <tr><td>LLM, limited compute</td><td>LoRA / QLoRA</td><td>3e-4</td></tr>
+      <tr><td>No GPU, just inference</td><td>Use API (OpenAI/Gemini)</td><td>N/A</td></tr>
+    </table>
+
+    <div class="section-title orange" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is transfer learning and why is it useful?"</div>
+      <div class="a">Transfer learning reuses a model pre-trained on a large dataset for a new, related task. Instead of training from scratch, you take all the general features the model already learned — edges in images, grammar in text — and adapt just the final layers to your specific task. This works well with small datasets where training from scratch would overfit, and it's dramatically faster and cheaper. All the LLMs I use in my projects — GPT-4o, Gemini — are examples of transfer learning applied at scale.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between feature extraction and fine-tuning?"</div>
+      <div class="a">Feature extraction freezes all pre-trained weights and only trains a new output head — the pre-trained model acts as a fixed feature extractor. Fine-tuning unfreezes some or all layers and trains them with a very small learning rate to adjust the features for the new domain. Feature extraction is faster and less prone to overfitting on small datasets. Fine-tuning gives better performance when you have enough data and the new domain differs from the pre-training domain.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Transfer learning = reuse pre-trained model instead of training from scratch. Feature extraction = freeze all, train new head only. Fine-tuning = unfreeze some layers, use low LR (1e-5). LoRA = train only tiny adapter matrices — 99% of model frozen. Always lower LR than scratch training.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #18 of 25 · Transfer Learning + Fine-Tuning · Deep Learning Complete ✅ · Maryum Akram · Next: Sheet #19 — Prompt Engineering</div>
+</div>
+</body>
+</html>

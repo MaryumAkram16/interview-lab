@@ -38,3 +38,7 @@ Upload reference PDFs or Markdown to a separate folder if useful, but the curren
 ## Personal practice data
 
 Use Progress → Export/Import or the optional cloud backup. Never commit exported answers, database credentials or passwords to this public repo. The `.gitignore` excludes progress export filenames, but still review staged files before committing.
+
+## Full-length imported sheets
+
+`data/cheatsheet-catalog.json` indexes standalone HTML files in `data/cheatsheets/`. Each entry has a unique `id`, title, category, relative `path`, searchable `keywords` and `sha256` content hash. Keep one catalog entry per topic. If you edit an HTML file, update its hash with `sha256sum data/cheatsheets/<filename>.html`. These files are included in the Pages deployment automatically. Original PDF versions of matching topics were not republished; see `docs/CHEATSHEET_IMPORT.md`.

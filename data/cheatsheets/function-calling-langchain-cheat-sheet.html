@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Function Calling + LangChain — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #002a1a; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #69f0ae; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #b9f6ca; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #69f0ae; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #002a1a; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.purple { background: #1a0a33; }
+  .section-title.orange { background: #7a3500; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #002a1a; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0fff4; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#002a1a;color:#69f0ae;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">LLMs & Generative AI · Cheat Sheet #21</div>
+      <div class="header-title">Function Calling + LangChain</div>
+      <div class="header-sub">Tool Use · JSON Schema · Parallel Calls · LangChain Chains · Agents</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Function Calling</div>
+    <div class="analogy">🔧 Function calling lets the LLM say "I need to use a tool." You define available tools as JSON schemas. When the model decides it needs one, it returns a structured tool call instead of a text response. Your code executes the function, then sends the result back to the model.</div>
+
+    <div class="sub-title">How It Works — 4 Steps</div>
+    <table>
+      <tr><th>Step</th><th>Who Acts</th><th>What Happens</th></tr>
+      <tr><td><strong>1</strong></td><td>You</td><td>Send message + tool definitions (JSON schema)</td></tr>
+      <tr><td><strong>2</strong></td><td>LLM</td><td>Returns tool_call with function name + args</td></tr>
+      <tr><td><strong>3</strong></td><td>You</td><td>Execute the real function with the args</td></tr>
+      <tr><td><strong>4</strong></td><td>LLM</td><td>Receives result, generates final response</td></tr>
+    </table>
+
+    <div class="sub-title">Define Tools — JSON Schema</div>
+    <pre><span class="kw">import</span> openai, json
+
+client = openai.<span class="fn">OpenAI</span>()
+
+<span class="cm"># Define available tools</span>
+tools = [{
+    <span class="st">"type"</span>: <span class="st">"function"</span>,
+    <span class="st">"function"</span>: {
+        <span class="st">"name"</span>: <span class="st">"get_appointment_slots"</span>,
+        <span class="st">"description"</span>: <span class="st">"Get available appointment slots for a doctor"</span>,
+        <span class="st">"parameters"</span>: {
+            <span class="st">"type"</span>: <span class="st">"object"</span>,
+            <span class="st">"properties"</span>: {
+                <span class="st">"doctor_id"</span>: {
+                    <span class="st">"type"</span>: <span class="st">"string"</span>,
+                    <span class="st">"description"</span>: <span class="st">"The doctor's ID"</span>
+                },
+                <span class="st">"date"</span>: {
+                    <span class="st">"type"</span>: <span class="st">"string"</span>,
+                    <span class="st">"description"</span>: <span class="st">"Date in YYYY-MM-DD format"</span>
+                }
+            },
+            <span class="st">"required"</span>: [<span class="st">"doctor_id"</span>, <span class="st">"date"</span>]
+        }
+    }
+}]</pre>
+
+    <div class="sub-title">Execute the Tool Call</div>
+    <pre><span class="cm"># Step 1: Send message with tools</span>
+response = client.chat.completions.<span class="fn">create</span>(
+    model=<span class="st">"gpt-4o"</span>, tools=tools,
+    messages=[{<span class="st">"role"</span>:<span class="st">"user"</span>,
+               <span class="st">"content"</span>:<span class="st">"Book me with Dr. Smith tomorrow"</span>}]
+)
+
+msg = response.choices[<span class="nm">0</span>].message
+
+<span class="cm"># Step 2: Check if model wants to call a tool</span>
+<span class="kw">if</span> msg.tool_calls:
+    tool_call = msg.tool_calls[<span class="nm">0</span>]
+    args = json.<span class="fn">loads</span>(tool_call.function.arguments)
+
+    <span class="cm"># Step 3: Execute real function</span>
+    slots = <span class="fn">get_appointment_slots</span>(**args)
+
+    <span class="cm"># Step 4: Send result back to model</span>
+    response2 = client.chat.completions.<span class="fn">create</span>(
+        model=<span class="st">"gpt-4o"</span>,
+        messages=[
+            {<span class="st">"role"</span>:<span class="st">"user"</span>, <span class="st">"content"</span>:<span class="st">"Book me with Dr. Smith"</span>},
+            msg,
+            {<span class="st">"role"</span>:<span class="st">"tool"</span>, <span class="st">"tool_call_id"</span>: tool_call.id,
+             <span class="st">"content"</span>: json.<span class="fn">dumps</span>(slots)}
+        ]
+    )</pre>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">LangChain Basics</div>
+    <div class="analogy">🔗 LangChain is a framework that chains LLM calls, tools, and memory together into pipelines. Instead of wiring everything manually, you declare what happens: prompt → LLM → output parser → next step.</div>
+
+    <div class="sub-title">Basic Chain — LCEL Style</div>
+    <pre><span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+<span class="kw">from</span> langchain_core.prompts <span class="kw">import</span> ChatPromptTemplate
+<span class="kw">from</span> langchain_core.output_parsers <span class="kw">import</span> StrOutputParser
+
+<span class="cm"># Define prompt template</span>
+prompt = ChatPromptTemplate.<span class="fn">from_messages</span>([
+    (<span class="st">"system"</span>, <span class="st">"You are a triage assistant."</span>),
+    (<span class="st">"human"</span>, <span class="st">"Patient symptoms: {symptoms}"</span>)
+])
+
+<span class="cm"># Build chain with | operator (LCEL)</span>
+llm   = <span class="fn">ChatOpenAI</span>(model=<span class="st">"gpt-4o"</span>)
+chain = prompt | llm | <span class="fn">StrOutputParser</span>()
+
+<span class="cm"># Run chain</span>
+result = chain.<span class="fn">invoke</span>({<span class="st">"symptoms"</span>: <span class="st">"fever and cough"</span>})
+<span class="kw">print</span>(result)</pre>
+
+    <div class="sub-title">RAG Chain with Retrieval</div>
+    <pre><span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> Chroma
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> OpenAIEmbeddings
+<span class="kw">from</span> langchain_core.runnables <span class="kw">import</span> RunnablePassthrough
+
+<span class="cm"># Setup retriever</span>
+vectorstore = Chroma.<span class="fn">from_documents</span>(
+    docs, <span class="fn">OpenAIEmbeddings</span>()
+)
+retriever = vectorstore.<span class="fn">as_retriever</span>(search_kwargs={<span class="st">"k"</span>:<span class="nm">3</span>})
+
+<span class="cm"># RAG prompt</span>
+rag_prompt = ChatPromptTemplate.<span class="fn">from_template</span>(<span class="st">"""
+Answer based only on the context below.
+Context: {context}
+Question: {question}
+"""</span>)
+
+<span class="cm"># Full RAG chain</span>
+rag_chain = (
+    {<span class="st">"context"</span>: retriever, <span class="st">"question"</span>: <span class="fn">RunnablePassthrough</span>()}
+    | rag_prompt
+    | llm
+    | <span class="fn">StrOutputParser</span>()
+)
+
+answer = rag_chain.<span class="fn">invoke</span>(<span class="st">"What are visiting hours?"</span>)</pre>
+
+    <div class="sub-title">LangChain vs Raw OpenAI API</div>
+    <table>
+      <tr><th></th><th>LangChain</th><th>Raw API</th></tr>
+      <tr><td>Boilerplate</td><td>Less code</td><td>More control</td></tr>
+      <tr><td>RAG</td><td>Built-in retrievers</td><td>Manual wiring</td></tr>
+      <tr><td>Multi-step</td><td>LCEL chain syntax</td><td>Manual loops</td></tr>
+      <tr><td>Debug</td><td>Harder</td><td>Easier</td></tr>
+      <tr><td>Use when</td><td>Rapid prototyping</td><td>Production fine control</td></tr>
+    </table>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title purple">Function Calling in Your Projects</div>
+
+    <div class="box-blue">
+      <strong>🏥 MediLens — Booking via Function Calling</strong>
+      When a patient says "Book me with Dr. Ahmed on Friday", the LLM doesn't guess — it calls get_available_slots(doctor_id, date) to get real-time data from Supabase, then calls book_appointment(slot_id, patient_id) to create the record. This is exactly the function calling pattern in your voice agent.
+    </div>
+
+    <div class="box-blue">
+      <strong>🛒 Lumina — Order Lookup</strong>
+      When a customer asks "Where is my order?", the voice agent calls get_order_status(order_id) using the Shopify API. The function call is triggered by the LLM recognizing the intent, not hardcoded string matching.
+    </div>
+
+    <div class="sub-title">n8n + Function Calling Pattern</div>
+    <pre><span class="cm"># n8n equivalent: HTTP Request node calls your</span>
+<span class="cm"># webhook after LLM decides which action to take</span>
+<span class="cm"># This is the same pattern as function calling</span>
+<span class="cm"># but in a visual workflow instead of code</span>
+
+<span class="cm"># LLM node → IF node (check tool_call type)</span>
+<span class="cm"># → HTTP Request (Supabase / Shopify / Calendar)</span>
+<span class="cm"># → LLM node (send result back)</span>
+<span class="cm"># → Return final response</span></pre>
+
+    <div class="section-title orange" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is function calling in LLMs?"</div>
+      <div class="a">Function calling lets an LLM request external actions instead of just generating text. You define available functions as JSON schemas describing their name, purpose, and parameters. When the model decides it needs real-world data, it returns a structured tool_call object instead of prose. Your code executes the actual function, then sends the result back to the model so it can incorporate it into the final response. I use this in MediLens for real-time appointment booking — the LLM decides when to call the calendar API.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "When would you use LangChain vs the raw OpenAI API?"</div>
+      <div class="a">LangChain is great for rapid prototyping — it has built-in retrievers, memory, and chain syntax that reduces boilerplate. For production systems where I need fine control over retry logic, error handling, and cost optimisation, I prefer the raw API. In my n8n workflows I use the raw API because n8n's HTTP node gives me full control over the request, and I can see exactly what's being sent without LangChain's abstraction layer hiding it.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Function calling = LLM returns structured tool_call → your code executes → send result back → LLM generates final response. Define tools as JSON schemas. LangChain = chain prompt | llm | parser with built-in RAG support. Use raw API for production control, LangChain for rapid prototyping.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #21 of 25 · Function Calling + LangChain · LLMs & Gen AI · Maryum Akram · Next: Sheet #22 — Hugging Face + Model Types</div>
+</div>
+</body>
+</html>

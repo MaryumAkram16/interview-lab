@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coding Exercise Strategies — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #3d1500; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .header-brand { font-size: 10px; color: #ffa07a; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .header-sub { font-size: 13px; color: #ffcc99; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #ffa07a; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #3d1500; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue { background: #0d2b5e; }
+  .section-title.green { background: #1a3d1a; }
+  .section-title.purple { background: #3d1a6e; }
+  .section-title.teal { background: #0d4d40; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; overflow-x: auto; line-height: 1.6; }
+  .kw { color: #ff7b72; } .fn { color: #d2a8ff; } .st { color: #a5d6ff; } .cm { color: #8b949e; font-style: italic; } .nm { color: #79c0ff; } .op { color: #ffa657; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #3d1500; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #fff8f4; }
+  .box-green { background: #e8f5e9; border-left: 3px solid #2e7d32; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #1b5e20; }
+  .box-green strong { color: #1b5e20; font-size: 10px; display: block; margin-bottom: 2px; }
+  .box-red { background: #fdecea; border-left: 3px solid #c62828; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #7f0000; }
+  .box-red strong { color: #b71c1c; font-size: 10px; display: block; margin-bottom: 2px; }
+  .box-blue { background: #e3f2fd; border-left: 3px solid #1565c0; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #0d47a1; }
+  .box-blue strong { color: #0d47a1; font-size: 10px; display: block; margin-bottom: 2px; }
+  .box-orange { background: #fff3e0; border-left: 3px solid #e65100; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #bf360c; }
+  .box-orange strong { color: #bf360c; font-size: 10px; display: block; margin-bottom: 2px; }
+  .qa-box { background: #fffde7; border: 1.5px solid #f9a825; border-radius: 5px; padding: 8px 10px; margin: 8px 0; font-size: 10.5px; }
+  .qa-box .q { font-weight: 700; color: #e65100; margin-bottom: 4px; }
+  .qa-box .a { color: #333; line-height: 1.5; }
+  .analogy { background: #f3e5f5; border-left: 3px solid #7b1fa2; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #4a148c; font-style: italic; }
+  .footer { grid-column: 1/-1; background: #3d1500; color: #ffa07a; font-size: 10px; text-align: center; padding: 8px; font-weight: 600; letter-spacing: 0.5px; }
+  .hl { background: #e8eaff; padding: 1px 4px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #3730a3; }
+  .step-row { display: flex; gap: 8px; align-items: flex-start; margin: 5px 0; }
+  .step-num { background: #3d1500; color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; flex-shrink: 0; margin-top: 1px; }
+  .step-text { font-size: 10.5px; color: #333; }
+  .timer-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid #ebebf5; font-size: 10.5px; }
+  .timer-label { font-weight: 700; color: #1a1a2e; }
+  .timer-val { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #0d2b5e; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <span class="header-brand">micro1 Retake Prep · Cheat Sheet #4 · 🔴 Priority Gap</span>
+      <span class="header-title">Coding Exercise Strategies</span>
+      <span class="header-sub">Read Carefully · Plan First · Edge Cases · Complete Solutions · Time Management</span>
+    </div>
+    <div class="header-right">
+      Maryum Akram<br>AI Automation Engineer<br>
+      <a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a>
+    </div>
+  </div>
+
+  <!-- ══════════════ COLUMN 1 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title">The 25-Minute Framework</div>
+
+    <div class="analogy">
+      🧠 Your micro1 feedback said: incomplete solutions from rushing. The fix is not coding faster — it is spending the first 5 minutes NOT coding. Understanding beats speed every time.
+    </div>
+
+    <div class="sub-title">Time Allocation (25 min total)</div>
+    <div class="timer-row"><span class="timer-label">📖 Read + Understand</span><span class="timer-val">3 min</span></div>
+    <div class="timer-row"><span class="timer-label">🗺️ Plan + Write steps in comments</span><span class="timer-val">3 min</span></div>
+    <div class="timer-row"><span class="timer-label">💻 Write the solution</span><span class="timer-val">12 min</span></div>
+    <div class="timer-row"><span class="timer-label">🧪 Test with examples</span><span class="timer-val">4 min</span></div>
+    <div class="timer-row"><span class="timer-label">🔍 Edge cases + cleanup</span><span class="timer-val">3 min</span></div>
+
+    <div class="box-red">
+      <strong>⚠️ Your identified pattern to fix</strong>
+      Reading quickly and pattern-matching on keywords instead of the full question. Slow down on step 1. Read the problem twice. Underline constraints. Then plan before touching the keyboard.
+    </div>
+
+    <div class="sub-title">Step 1 — Read the Problem Correctly</div>
+    <p>Before writing anything, answer these 4 questions in your head:</p>
+    <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>What is the INPUT?</strong> What type? What size? Can it be empty?</div></div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>What is the OUTPUT?</strong> A number? A list? A boolean? A modified string?</div></div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>What are the CONSTRAINTS?</strong> Sorted? Unique? Positive integers only?</div></div>
+    <div class="step-row"><div class="step-num">4</div><div class="step-text"><strong>What is the EDGE CASE?</strong> Empty input, one element, all duplicates, negative numbers?</div></div>
+
+    <div class="sub-title">Step 2 — Plan in Comments First</div>
+    <pre><span class="cm"># BEFORE writing any real code, write your plan</span>
+<span class="cm"># as comments. This is not wasted time.</span>
+
+<span class="kw">def</span> <span class="fn">two_sum</span>(nums, target):
+    <span class="cm"># Goal: find two numbers that add to target</span>
+    <span class="cm"># Return their indices</span>
+
+    <span class="cm"># Plan:</span>
+    <span class="cm"># 1. Use a hash map to store seen numbers</span>
+    <span class="cm"># 2. For each number, check if complement exists</span>
+    <span class="cm"># 3. Complement = target - current number</span>
+    <span class="cm"># 4. If found, return both indices</span>
+    <span class="cm"># 5. Edge case: empty list → return []</span>
+
+    <span class="cm"># NOW write the code under each comment</span>
+    <span class="kw">pass</span></pre>
+
+    <div class="box-green">
+      <strong>✅ Why plan in comments?</strong>
+      It forces you to think before coding. If you run out of time, the interviewer sees your logic even if code is incomplete. Partial credit for clear thinking beats no credit for half-written syntax.
+    </div>
+
+  </div>
+
+  <!-- ══════════════ COLUMN 2 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title blue">Complete Solution Patterns</div>
+
+    <div class="sub-title">Pattern 1 — Two Sum (Hash Map)</div>
+    <pre><span class="kw">def</span> <span class="fn">two_sum</span>(nums, target):
+    <span class="cm"># Edge case first — always</span>
+    <span class="kw">if not</span> nums <span class="kw">or</span> <span class="fn">len</span>(nums) < <span class="nm">2</span>:
+        <span class="kw">return</span> []
+
+    seen = {}  <span class="cm"># num → index</span>
+
+    <span class="kw">for</span> i, num <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        complement = target - num
+
+        <span class="kw">if</span> complement <span class="kw">in</span> seen:
+            <span class="kw">return</span> [seen[complement], i]
+
+        seen[num] = i
+
+    <span class="kw">return</span> []  <span class="cm"># no solution found</span>
+
+<span class="cm"># Test it before submitting!</span>
+<span class="kw">print</span>(<span class="fn">two_sum</span>([<span class="nm">2</span>,<span class="nm">7</span>,<span class="nm">11</span>,<span class="nm">15</span>], <span class="nm">9</span>))  <span class="cm"># [0,1]</span>
+<span class="kw">print</span>(<span class="fn">two_sum</span>([], <span class="nm">5</span>))            <span class="cm"># []</span></pre>
+
+    <div class="sub-title">Pattern 2 — Find Duplicates (Hash Set)</div>
+    <pre><span class="kw">def</span> <span class="fn">find_duplicates</span>(items):
+    <span class="cm"># Edge case</span>
+    <span class="kw">if not</span> items: <span class="kw">return</span> []
+
+    seen = <span class="fn">set</span>()
+    duplicates = []
+
+    <span class="kw">for</span> item <span class="kw">in</span> items:
+        <span class="kw">if</span> item <span class="kw">in</span> seen:
+            duplicates.<span class="fn">append</span>(item)
+        <span class="kw">else</span>:
+            seen.<span class="fn">add</span>(item)
+
+    <span class="kw">return</span> duplicates
+
+<span class="cm"># Test</span>
+<span class="kw">print</span>(<span class="fn">find_duplicates</span>([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>,<span class="nm">2</span>,<span class="nm">4</span>,<span class="nm">3</span>]))
+<span class="cm"># [2, 3]</span></pre>
+
+    <div class="sub-title">Pattern 3 — Most Frequent Item</div>
+    <pre><span class="kw">from</span> collections <span class="kw">import</span> Counter
+
+<span class="kw">def</span> <span class="fn">most_frequent</span>(items):
+    <span class="kw">if not</span> items: <span class="kw">return</span> <span class="nm">None</span>
+
+    counts = <span class="fn">Counter</span>(items)
+    <span class="kw">return</span> counts.<span class="fn">most_common</span>(<span class="nm">1</span>)[<span class="nm">0</span>][<span class="nm">0</span>]
+
+<span class="kw">print</span>(<span class="fn">most_frequent</span>([<span class="st">'a'</span>,<span class="st">'b'</span>,<span class="st">'a'</span>,<span class="st">'c'</span>,<span class="st">'a'</span>]))
+<span class="cm"># 'a'</span></pre>
+
+    <div class="sub-title">Pattern 4 — Group / Categorize Items</div>
+    <pre><span class="kw">def</span> <span class="fn">group_by_length</span>(words):
+    <span class="kw">if not</span> words: <span class="kw">return</span> {}
+
+    groups = {}
+
+    <span class="kw">for</span> word <span class="kw">in</span> words:
+        length = <span class="fn">len</span>(word)
+        <span class="kw">if</span> length <span class="kw">not in</span> groups:
+            groups[length] = []
+        groups[length].<span class="fn">append</span>(word)
+
+    <span class="kw">return</span> groups
+
+<span class="cm"># Or with setdefault (cleaner):</span>
+<span class="cm"># groups.setdefault(length, []).append(word)</span></pre>
+
+    <div class="box-blue">
+      <strong>💡 collections module — memorize these 3</strong>
+      <span class="hl">Counter(items)</span> — count frequencies fast<br>
+      <span class="hl">defaultdict(list)</span> — dict with default value<br>
+      <span class="hl">deque()</span> — fast append/pop from both ends
+    </div>
+
+    <div class="sub-title">Pattern 5 — Seat Allocation Algorithm</div>
+    <pre><span class="kw">def</span> <span class="fn">allocate_seats</span>(total_seats, group_sizes):
+    <span class="cm"># Edge case: No seats or no groups</span>
+    <span class="kw">if</span> total_seats <= <span class="nm">0</span> <span class="kw">or not</span> group_sizes:
+        <span class="kw">return</span> []
+
+    allocations = []
+    remaining_seats = total_seats
+
+    <span class="cm"># Sort groups by size (largest first for greedy allocation)</span>
+    <span class="cm"># Or smallest first depending on problem constraints</span>
+    sorted_groups = <span class="fn">sorted</span>(group_sizes, reverse=<span class="nm">True</span>)
+
+    <span class="kw">for</span> group_size <span class="kw">in</span> sorted_groups:
+        <span class="kw">if</span> group_size <= remaining_seats:
+            allocations.<span class="fn">append</span>(group_size)
+            remaining_seats -= group_size
+        <span class="kw">else</span>:
+            <span class="cm"># Handle partial allocation or skip group if not enough seats</span>
+            <span class="cm"># For this example, we skip if not enough for whole group</span>
+            <span class="kw">pass</span>
+
+    <span class="kw">return</span> allocations
+
+<span class="cm"># Test cases</span>
+<span class="kw">print</span>(<span class="fn">allocate_seats</span>(<span class="nm">10</span>, [<span class="nm">2</span>, <span class="nm">3</span>, <span class="nm">5</span>])) <span class="cm"># Expected: [5, 3, 2] or similar based on sorting</span>
+<span class="kw">print</span>(<span class="fn">allocate_seats</span>(<span class="nm">7</span>, [<span class="nm">4</span>, <span class="nm">3</span>, <span class="nm">2</span>]))  <span class="cm"># Expected: [4, 3]</span>
+<span class="kw">print</span>(<span class="fn">allocate_seats</span>(<span class="nm">5</span>, [<span class="nm">6</span>]))      <span class="cm"># Expected: []</span>
+<span class="kw">print</span>(<span class="fn">allocate_seats</span>(<span class="nm">0</span>, [<span class="nm">1</span>, <span class="nm">2</span>]))    <span class="cm"># Expected: []</span></pre>
+
+  </div>
+
+  <!-- ══════════════ COLUMN 3 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title green">Edge Cases Checklist</div>
+
+    <div class="sub-title">Always Check These Before Submitting</div>
+    <table>
+      <tr><th>Input Type</th><th>Edge Case to Test</th></tr>
+      <tr><td>List / Array</td><td>Empty <span class="hl">[]</span>, one element <span class="hl">[x]</span>, all same</td></tr>
+      <tr><td>String</td><td>Empty <span class="hl">""</span>, one char, spaces, uppercase</td></tr>
+      <tr><td>Number</td><td>Zero, negative, very large, float</td></tr>
+      <tr><td>Dictionary</td><td>Empty <span class="hl">{}</span>, missing key, nested</td></tr>
+      <tr><td>Two lists</td><td>Different lengths, one empty</td></tr>
+    </table>
+
+    <pre><span class="cm"># Template — copy this structure every time</span>
+<span class="kw">def</span> <span class="fn">solve</span>(input_data):
+    <span class="cm"># ① Edge case guard — first thing always</span>
+    <span class="kw">if not</span> input_data:
+        <span class="kw">return</span> <span class="nm">None</span>  <span class="cm"># or [], or 0, per problem</span>
+
+    <span class="cm"># ② Initialize variables</span>
+    result = []
+
+    <span class="cm"># ③ Main logic</span>
+    <span class="kw">for</span> item <span class="kw">in</span> input_data:
+        <span class="cm"># process here</span>
+        <span class="kw">pass</span>
+
+    <span class="cm"># ④ Return result — never forget this!</span>
+    <span class="kw">return</span> result</pre>
+
+    <div class="section-title teal" style="margin-top:10px;">When You Get Stuck</div>
+
+    <div class="sub-title">Unstuck Ladder — Use in Order</div>
+    <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Re-read the problem</strong> — you may have misread a constraint</div></div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Work a tiny example by hand</strong> — e.g. list of 2 items</div></div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Brute force first</strong> — get a working O(n²) before optimizing</div></div>
+    <div class="step-row"><div class="step-num">4</div><div class="step-text"><strong>Think data structures</strong> — would a dict / set / list help?</div></div>
+    <div class="step-row"><div class="step-num">5</div><div class="step-text"><strong>Talk through it</strong> — say what you're thinking out loud</div></div>
+
+    <div class="box-orange">
+      <strong>🔑 Incomplete but logical &gt; incomplete and silent</strong>
+      If you can't finish, write what you have + comment what would come next. The evaluator sees your thinking. "I would handle the edge case here by checking for None before iterating" is worth points.
+    </div>
+
+    <div class="sub-title">Python Built-ins That Save Time</div>
+    <table>
+      <tr><th>Need</th><th>Use</th></tr>
+      <tr><td>Count items</td><td><span class="hl">Counter(list)</span></td></tr>
+      <tr><td>Sort by key</td><td><span class="hl">sorted(list, key=lambda x: x[1])</span></td></tr>
+      <tr><td>Flatten list</td><td><span class="hl">[x for sub in lst for x in sub]</span></td></tr>
+      <tr><td>Unique items</td><td><span class="hl">list(set(items))</span></td></tr>
+      <tr><td>Max by value</td><td><span class="hl">max(dict, key=dict.get)</span></td></tr>
+      <tr><td>Zip two lists</td><td><span class="hl">list(zip(a, b))</span></td></tr>
+      <tr><td>Enumerate</td><td><span class="hl">for i, v in enumerate(lst)</span></td></tr>
+    </table>
+
+    <div class="qa-box">
+      <div class="q">🎤 If asked "How did the coding exercise go?" in retake</div>
+      <div class="a">Last time I rushed into writing code before fully reading the constraints, which left my solution incomplete. Now I always spend the first few minutes reading twice and writing my plan as comments before touching any logic. That way even if I run short on time, the structure is visible.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ The one rule that fixes everything</strong>
+      Write the edge case check and return statement FIRST. Then fill in the middle. You will never submit a function that crashes on empty input again.
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Cheat Sheet #4 of 25 · Coding Exercise Strategies · micro1 Retake Prep · Maryum Akram · 🔴 All 4 Priority Gaps Complete! Next: Sheet #5 — Mutable vs Immutable
+  </div>
+
+</div>
+</body>
+</html>

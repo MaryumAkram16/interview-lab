@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PostgreSQL Concurrency + Race Conditions — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #1a0000; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #ff5252; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #ff8a80; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #ff5252; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #1a0000; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue  { background: #0d2b5e; }
+  .section-title.green { background: #0a2a1a; }
+  .section-title.gold  { background: #5a4000; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #1a0000; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #fff4f4; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .box-gold{background:#fff8e1;border-left:3px solid #f9a825;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#5a4000}
+  .box-gold strong{color:#5a4000;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#1a0000;color:#ff5252;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+  .final-banner{grid-column:1/-1;background:linear-gradient(135deg,#0a2a1a,#0d2b5e,#1a0a33);color:white;padding:14px 28px;text-align:center;font-size:14px;font-weight:800;letter-spacing:1px}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Databases & SQL · Cheat Sheet #25 · FINAL SHEET 🏆</div>
+      <div class="header-title">PostgreSQL Concurrency + Race Conditions</div>
+      <div class="header-sub">MVCC · Optimistic Locking · Concurrent Patterns · Full Recap</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">MVCC — How PostgreSQL Handles Concurrency</div>
+    <div class="analogy">📸 MVCC (Multi-Version Concurrency Control) is like a photo system. When you start a transaction, you get a snapshot of the database at that exact moment. Other transactions can write new versions of rows without blocking you — you keep reading your snapshot. No locks needed for reads.</div>
+
+    <p><strong>MVCC = readers don't block writers, writers don't block readers.</strong> Each transaction sees a consistent snapshot of the database as it was when the transaction started.</p>
+
+    <div class="sub-title">Race Condition Types</div>
+    <table>
+      <tr><th>Problem</th><th>What Happens</th><th>Fix</th></tr>
+      <tr><td><strong>Dirty Read</strong></td><td>Read uncommitted data from another transaction</td><td>READ COMMITTED isolation</td></tr>
+      <tr><td><strong>Non-repeatable Read</strong></td><td>Same row returns different values in same transaction</td><td>REPEATABLE READ</td></tr>
+      <tr><td><strong>Phantom Read</strong></td><td>Re-running query returns different rows</td><td>SERIALIZABLE</td></tr>
+      <tr><td><strong>Lost Update</strong></td><td>Two transactions overwrite each other</td><td>SELECT FOR UPDATE</td></tr>
+      <tr><td><strong>Double Insert</strong></td><td>Concurrent inserts create duplicate records</td><td>INSERT...ON CONFLICT</td></tr>
+    </table>
+
+    <div class="sub-title">Optimistic vs Pessimistic Locking</div>
+    <table>
+      <tr><th></th><th>Optimistic</th><th>Pessimistic</th></tr>
+      <tr><td><strong>Assumption</strong></td><td>Conflicts are rare</td><td>Conflicts are likely</td></tr>
+      <tr><td><strong>How</strong></td><td>version column + check on update</td><td>SELECT FOR UPDATE</td></tr>
+      <tr><td><strong>Lock timing</strong></td><td>At write time (detect + retry)</td><td>At read time (block)</td></tr>
+      <tr><td><strong>Best for</strong></td><td>Low contention, read-heavy</td><td>High contention, seat booking</td></tr>
+    </table>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Optimistic Locking Pattern</div>
+    <div class="analogy">🏷️ Optimistic locking adds a version number to each row. When you update, you check the version hasn't changed since you read it. If it has, someone else updated it first — your update fails and you retry. No blocking, just detection.</div>
+
+    <pre><span class="cm">-- Add version column to table</span>
+<span class="kw">ALTER TABLE</span> appointments
+  <span class="kw">ADD COLUMN</span> version <span class="op">INTEGER</span> <span class="kw">DEFAULT</span> <span class="nm">1</span>;
+
+<span class="cm">-- Read with version</span>
+<span class="kw">SELECT</span> id, status, version
+  <span class="kw">FROM</span> appointments
+ <span class="kw">WHERE</span> id = <span class="nm">42</span>;
+<span class="cm">-- Returns: id=42, status='pending', version=3</span>
+
+<span class="cm">-- Update — only if version unchanged</span>
+<span class="kw">UPDATE</span> appointments
+   <span class="kw">SET</span> status = <span class="st">'confirmed'</span>,
+       version = version + <span class="nm">1</span>
+ <span class="kw">WHERE</span> id = <span class="nm">42</span>
+   <span class="kw">AND</span> version = <span class="nm">3</span>;  <span class="cm">-- must match!</span>
+
+<span class="cm">-- Check rows affected</span>
+<span class="cm">-- 0 rows updated = someone else changed it first</span>
+<span class="cm">-- 1 row updated = success, proceed</span></pre>
+
+    <div class="sub-title">Python — Optimistic Lock with Retry</div>
+    <pre><span class="kw">def</span> <span class="fn">confirm_appointment</span>(conn, appt_id, max_retries=<span class="nm">3</span>):
+    <span class="kw">for</span> attempt <span class="kw">in</span> <span class="fn">range</span>(max_retries):
+        <span class="kw">with</span> conn.<span class="fn">cursor</span>() <span class="kw">as</span> cur:
+            <span class="cm"># Read current version</span>
+            cur.<span class="fn">execute</span>(
+                <span class="st">"SELECT version FROM appointments WHERE id=%s"</span>,
+                (appt_id,)
+            )
+            row = cur.<span class="fn">fetchone</span>()
+            current_version = row[<span class="nm">0</span>]
+
+            <span class="cm"># Try to update with version check</span>
+            cur.<span class="fn">execute</span>(<span class="st">"""
+                UPDATE appointments
+                   SET status='confirmed',
+                       version=version+1
+                 WHERE id=%s AND version=%s
+            """</span>, (appt_id, current_version))
+            conn.<span class="fn">commit</span>()
+
+            <span class="kw">if</span> cur.rowcount == <span class="nm">1</span>:
+                <span class="kw">return</span> <span class="nm">True</span>   <span class="cm"># success</span>
+            <span class="cm"># rowcount=0 → retry</span>
+
+    <span class="kw">raise</span> <span class="fn">RuntimeError</span>(<span class="st">"Failed after retries"</span>)</pre>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Concurrency Patterns Summary</div>
+
+    <div class="sub-title">All 5 Concurrency Tools — When to Use</div>
+    <table>
+      <tr><th>Tool</th><th>Use When</th></tr>
+      <tr><td><span class="hl">INSERT...ON CONFLICT</span></td><td>Prevent duplicate inserts — atomic upsert</td></tr>
+      <tr><td><span class="hl">SELECT FOR UPDATE</span></td><td>Read-then-write, high contention</td></tr>
+      <tr><td><span class="hl">SELECT FOR UPDATE SKIP LOCKED</span></td><td>Job queues — parallel workers</td></tr>
+      <tr><td><span class="hl">Optimistic locking (version)</span></td><td>Low contention, retry on conflict</td></tr>
+      <tr><td><span class="hl">SERIALIZABLE isolation</span></td><td>Financial, no phantom reads allowed</td></tr>
+    </table>
+
+    <div class="sub-title">PostgreSQL Concurrency in Supabase (Your Stack)</div>
+    <div class="box-blue">
+      <strong>🏥 MediLens — All patterns in one project</strong>
+      Idempotency keys use <span class="hl">ON CONFLICT DO NOTHING</span>. Appointment booking uses <span class="hl">SELECT FOR UPDATE</span>. Concurrent n8n workflow runs use <span class="hl">SKIP LOCKED</span> for job queue processing. Patient record updates use optimistic locking via version column. All running on Supabase PostgreSQL.
+    </div>
+
+    <div class="box-gold">
+      <strong>🏆 YOU HAVE COMPLETED ALL 25 SHEETS!</strong>
+      4 micro1 gap sheets + 7 Python Internals + 3 API Reliability + 3 Machine Learning + 4 Deep Learning + 4 LLMs & Gen AI + 3 Databases & SQL. Every topic from every handbook. You are ready.
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "How does PostgreSQL handle concurrent transactions?"</div>
+      <div class="a">PostgreSQL uses MVCC — Multi-Version Concurrency Control. Every transaction gets a snapshot of the database at the moment it starts. Readers never block writers and writers never block readers because each transaction works with its own version of the data. For explicit write conflicts I use SELECT FOR UPDATE to lock specific rows, or INSERT...ON CONFLICT for atomic deduplication. For high-throughput systems like job queues I use SKIP LOCKED so multiple workers can process different rows in parallel without blocking each other.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ Final one-line summary — Databases complete</strong>
+      MVCC = snapshot isolation, readers + writers don't block each other. INSERT ON CONFLICT = duplicate prevention. SELECT FOR UPDATE = row lock for read-write safety. Optimistic locking = version column + retry. SKIP LOCKED = parallel queue workers. ACID = Atomic Consistent Isolated Durable. You know all of it.
+    </div>
+  </div>
+
+  <div class="final-banner">
+    🏆 ALL 25 CHEAT SHEETS COMPLETE · Maryum Akram · micro1 Retake Ready · July 6, 2026
+  </div>
+
+  <div class="footer">Cheat Sheet #25 of 25 · PostgreSQL Concurrency · Databases & SQL Complete ✅ · ALL SECTIONS DONE ✅ · Now compiling master PDF handbook...</div>
+</div>
+</body>
+</html>

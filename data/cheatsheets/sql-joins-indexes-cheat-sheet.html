@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Joins + Indexes — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #002233; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #40c4ff; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #80d8ff; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #40c4ff; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #002233; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.purple { background: #1a0a33; }
+  .section-title.green  { background: #0a2a1a; }
+  .section-title.orange { background: #7a3500; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #002233; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0f8ff; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#002233;color:#40c4ff;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Databases & SQL · Cheat Sheet #24</div>
+      <div class="header-title">SQL Joins + Indexes</div>
+      <div class="header-sub">INNER/LEFT/RIGHT/FULL JOIN · Index Types · EXPLAIN ANALYZE · Query Optimization</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Joins</div>
+    <div class="analogy">🔗 Joins combine rows from two tables based on a matching column. INNER JOIN = only matching rows in both. LEFT JOIN = all left rows + matching right rows (NULL if no match). Think of it as a Venn diagram — INNER = intersection, LEFT = entire left circle.</div>
+
+    <div class="sub-title">INNER JOIN — Only Matching Rows</div>
+    <pre><span class="cm">-- Get all appointments WITH patient info</span>
+<span class="cm">-- Appointments without a patient are excluded</span>
+<span class="kw">SELECT</span>
+    a.id, a.slot_time, a.status,
+    p.name, p.phone
+<span class="kw">FROM</span> appointments a
+<span class="kw">INNER JOIN</span> patients p
+        <span class="kw">ON</span> a.patient_id = p.id;</pre>
+
+    <div class="sub-title">LEFT JOIN — All Left + Matching Right</div>
+    <pre><span class="cm">-- Get ALL patients, with their appointment if any</span>
+<span class="cm">-- Patients with no appointment → NULL in appt columns</span>
+<span class="kw">SELECT</span>
+    p.name,
+    a.slot_time,        <span class="cm">-- NULL if no appointment</span>
+    a.status
+<span class="kw">FROM</span> patients p
+<span class="kw">LEFT JOIN</span> appointments a
+       <span class="kw">ON</span> p.id = a.patient_id;</pre>
+
+    <div class="sub-title">All Join Types</div>
+    <table>
+      <tr><th>Join</th><th>Returns</th></tr>
+      <tr><td><strong>INNER JOIN</strong></td><td>Only rows matching in BOTH tables</td></tr>
+      <tr><td><strong>LEFT JOIN</strong></td><td>All left rows + matching right (NULL if none)</td></tr>
+      <tr><td><strong>RIGHT JOIN</strong></td><td>All right rows + matching left (NULL if none)</td></tr>
+      <tr><td><strong>FULL JOIN</strong></td><td>All rows from both, NULL where no match</td></tr>
+      <tr><td><strong>CROSS JOIN</strong></td><td>Every combination (cartesian product)</td></tr>
+    </table>
+
+    <div class="sub-title">Self Join + Subquery</div>
+    <pre><span class="cm">-- Find patients who have multiple appointments</span>
+<span class="kw">SELECT</span> patient_id, <span class="fn">COUNT</span>(*) appt_count
+  <span class="kw">FROM</span> appointments
+ <span class="kw">GROUP BY</span> patient_id
+<span class="kw">HAVING</span> <span class="fn">COUNT</span>(*) > <span class="nm">1</span>;
+
+<span class="cm">-- Subquery in WHERE</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> patients
+ <span class="kw">WHERE</span> id <span class="kw">IN</span> (
+    <span class="kw">SELECT</span> patient_id
+      <span class="kw">FROM</span> appointments
+     <span class="kw">WHERE</span> status = <span class="st">'urgent'</span>
+ );</pre>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title purple">Indexes</div>
+    <div class="analogy">📖 An index is like the index at the back of a book. Without it, you read every page (full table scan). With it, you jump directly to the right page (O(log n) lookup). The tradeoff: indexes make reads faster but writes slightly slower.</div>
+
+    <div class="sub-title">Creating Indexes</div>
+    <pre><span class="cm">-- B-Tree index (default) — equality + range</span>
+<span class="kw">CREATE INDEX</span> idx_patient_email
+          <span class="kw">ON</span> patients(email);
+
+<span class="cm">-- Unique index — enforces uniqueness</span>
+<span class="kw">CREATE UNIQUE INDEX</span> idx_appt_slot
+               <span class="kw">ON</span> appointments(slot_id);
+
+<span class="cm">-- Composite index — queries using both columns</span>
+<span class="kw">CREATE INDEX</span> idx_appt_patient_date
+          <span class="kw">ON</span> appointments(patient_id, slot_time);
+
+<span class="cm">-- Partial index — only indexes certain rows</span>
+<span class="cm">-- Smaller, faster for filtered queries</span>
+<span class="kw">CREATE INDEX</span> idx_urgent_appts
+          <span class="kw">ON</span> appointments(created_at)
+       <span class="kw">WHERE</span> status = <span class="st">'urgent'</span>;
+
+<span class="cm">-- GIN index — for JSONB, arrays, full-text</span>
+<span class="kw">CREATE INDEX</span> idx_symptoms_gin
+          <span class="kw">ON</span> patients <span class="kw">USING</span> GIN (symptoms);</pre>
+
+    <div class="sub-title">Index Types</div>
+    <table>
+      <tr><th>Type</th><th>Best For</th></tr>
+      <tr><td><strong>B-Tree</strong></td><td>Default. Equality, range, ORDER BY</td></tr>
+      <tr><td><strong>Hash</strong></td><td>Equality only, faster than B-Tree for =</td></tr>
+      <tr><td><strong>GIN</strong></td><td>JSONB, arrays, full-text search</td></tr>
+      <tr><td><strong>GiST</strong></td><td>Geometric types, full-text, pgvector</td></tr>
+      <tr><td><strong>BRIN</strong></td><td>Sequential data like timestamps</td></tr>
+    </table>
+
+    <div class="sub-title">EXPLAIN ANALYZE — Diagnose Slow Queries</div>
+    <pre><span class="cm">-- See query execution plan + actual timings</span>
+<span class="kw">EXPLAIN ANALYZE</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> appointments
+ <span class="kw">WHERE</span> patient_id = <span class="nm">123</span>
+   <span class="kw">AND</span> status = <span class="st">'confirmed'</span>;
+
+<span class="cm">-- Look for:</span>
+<span class="cm">-- "Seq Scan" = bad (full table scan, no index)</span>
+<span class="cm">-- "Index Scan" = good (using index)</span>
+<span class="cm">-- "Bitmap Heap Scan" = good for range queries</span>
+<span class="cm">-- High "rows=" with low "actual rows=" = bad estimate</span></pre>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Advanced SQL Patterns</div>
+
+    <div class="sub-title">Window Functions</div>
+    <pre><span class="cm">-- Rank patients by number of appointments</span>
+<span class="kw">SELECT</span>
+    patient_id,
+    <span class="fn">COUNT</span>(*) appt_count,
+    <span class="fn">RANK</span>() <span class="kw">OVER</span> (
+        <span class="kw">ORDER BY</span> <span class="fn">COUNT</span>(*) <span class="kw">DESC</span>
+    ) <span class="kw">AS</span> rank
+<span class="kw">FROM</span> appointments
+<span class="kw">GROUP BY</span> patient_id;
+
+<span class="cm">-- Running total</span>
+<span class="kw">SELECT</span>
+    created_at::date <span class="kw">AS</span> day,
+    <span class="fn">COUNT</span>(*) bookings,
+    <span class="fn">SUM</span>(<span class="fn">COUNT</span>(*)) <span class="kw">OVER</span> (
+        <span class="kw">ORDER BY</span> created_at::date
+    ) <span class="kw">AS</span> running_total
+<span class="kw">FROM</span> appointments
+<span class="kw">GROUP BY</span> created_at::date;</pre>
+
+    <div class="sub-title">CTEs — Readable Complex Queries</div>
+    <pre><span class="cm">-- CTE: Common Table Expression</span>
+<span class="cm">-- Like a named subquery — improves readability</span>
+<span class="kw">WITH</span> urgent_patients <span class="kw">AS</span> (
+    <span class="kw">SELECT DISTINCT</span> patient_id
+      <span class="kw">FROM</span> appointments
+     <span class="kw">WHERE</span> triage_level = <span class="st">'urgent'</span>
+),
+recent_visits <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> patient_id, <span class="fn">MAX</span>(slot_time) last_visit
+      <span class="kw">FROM</span> appointments
+     <span class="kw">GROUP BY</span> patient_id
+)
+<span class="kw">SELECT</span> p.name, r.last_visit
+  <span class="kw">FROM</span> patients p
+  <span class="kw">JOIN</span> urgent_patients u <span class="kw">ON</span> p.id = u.patient_id
+  <span class="kw">JOIN</span> recent_visits r   <span class="kw">ON</span> p.id = r.patient_id;</pre>
+
+    <div class="section-title orange" style="margin-top:8px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between INNER JOIN and LEFT JOIN?"</div>
+      <div class="a">INNER JOIN returns only rows where there's a match in both tables — unmatched rows from either side are excluded. LEFT JOIN returns every row from the left table, with matching data from the right table where it exists, and NULL where it doesn't. Use LEFT JOIN when you need all records from one table regardless of whether the related record exists — for example, all patients even if they have no appointments yet.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "When should you add an index?"</div>
+      <div class="a">Add indexes on columns you frequently filter by in WHERE clauses, JOIN conditions, and ORDER BY. In my Supabase projects I always index patient_id and email since nearly every query filters by those. The tradeoff: indexes speed up reads but slow down inserts and updates slightly, and consume storage. Use EXPLAIN ANALYZE to confirm a query is doing a Seq Scan — that's the signal an index is needed.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      INNER JOIN = intersection only. LEFT JOIN = all left + matched right. Always index WHERE and JOIN columns. B-Tree = default index for most use. GIN = JSONB/arrays. EXPLAIN ANALYZE reveals Seq Scan (bad) vs Index Scan (good). CTEs make complex queries readable.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #24 of 25 · SQL Joins + Indexes · Databases & SQL · Maryum Akram · Next: Sheet #25 — PostgreSQL Concurrency + Race Conditions (FINAL!)</div>
+</div>
+</body>
+</html>

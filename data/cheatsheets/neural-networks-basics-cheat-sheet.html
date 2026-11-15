@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Networks Basics — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #001a33; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #40c4ff; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #80d8ff; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #40c4ff; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #001a33; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.purple { background: #2a0a2a; }
+  .section-title.green  { background: #0a2a1a; }
+  .section-title.orange { background: #7a3500; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #001a33; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0f8ff; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#001a33;color:#40c4ff;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Deep Learning · Cheat Sheet #15</div>
+      <div class="header-title">Neural Networks Basics</div>
+      <div class="header-sub">Neurons · Layers · Weights · Biases · Forward Pass · PyTorch · Activation Functions</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">How a Neuron Works</div>
+    <div class="analogy">🧠 A single neuron is like a voting machine. It takes multiple inputs, weighs each vote by importance (weights), adds a baseline vote (bias), then decides whether to fire based on an activation function. Many neurons together = a network.</div>
+
+    <p>Each neuron computes: <strong>output = activation(w₁x₁ + w₂x₂ + ... + b)</strong></p>
+    <p>Where <strong>w</strong> = weights (learned), <strong>x</strong> = inputs, <strong>b</strong> = bias, <strong>activation</strong> = non-linear function.</p>
+
+    <div class="sub-title">Layer Types</div>
+    <table>
+      <tr><th>Layer</th><th>Role</th></tr>
+      <tr><td><strong>Input Layer</strong></td><td>Receives raw features (no computation)</td></tr>
+      <tr><td><strong>Hidden Layers</strong></td><td>Learn intermediate representations</td></tr>
+      <tr><td><strong>Output Layer</strong></td><td>Final prediction — size = number of classes</td></tr>
+    </table>
+
+    <div class="sub-title">Activation Functions</div>
+    <table>
+      <tr><th>Function</th><th>Output Range</th><th>Use When</th></tr>
+      <tr><td><strong>ReLU</strong></td><td>[0, ∞)</td><td>Hidden layers — default choice</td></tr>
+      <tr><td><strong>Sigmoid</strong></td><td>(0, 1)</td><td>Binary classification output</td></tr>
+      <tr><td><strong>Softmax</strong></td><td>(0,1) sums to 1</td><td>Multi-class output layer</td></tr>
+      <tr><td><strong>Tanh</strong></td><td>(-1, 1)</td><td>Hidden layers (centred)</td></tr>
+      <tr><td><strong>LeakyReLU</strong></td><td>(-∞, ∞)</td><td>Avoid dying ReLU problem</td></tr>
+    </table>
+
+    <div class="box-red">
+      <strong>⚠️ The Dying ReLU Problem</strong>
+      ReLU outputs 0 for all negative inputs. If a neuron always receives negative inputs, its gradient is always 0 — it never learns. Fix: use LeakyReLU which allows a tiny gradient for negative values instead of hard zero.
+    </div>
+
+    <div class="sub-title">Why Activation Functions Are Needed</div>
+    <div class="analogy">📐 Without activation functions, stacking many linear layers still produces a single linear function — no matter how deep your network is. Activation functions introduce non-linearity, allowing the network to learn complex, curved decision boundaries.</div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title purple">PyTorch — Build a Network</div>
+
+    <div class="sub-title">Sequential Model</div>
+    <pre><span class="kw">import</span> torch
+<span class="kw">import</span> torch.nn <span class="kw">as</span> nn
+
+<span class="cm"># Simple feedforward network</span>
+<span class="cm"># Input: 10 features → Hidden: 64 → Output: 3 classes</span>
+model = nn.<span class="fn">Sequential</span>(
+    nn.<span class="fn">Linear</span>(<span class="nm">10</span>, <span class="nm">64</span>),    <span class="cm"># input → hidden</span>
+    nn.<span class="fn">ReLU</span>(),             <span class="cm"># activation</span>
+    nn.<span class="fn">Dropout</span>(p=<span class="nm">0.3</span>),    <span class="cm"># regularization</span>
+    nn.<span class="fn">Linear</span>(<span class="nm">64</span>, <span class="nm">32</span>),    <span class="cm"># hidden → hidden</span>
+    nn.<span class="fn">ReLU</span>(),
+    nn.<span class="fn">Linear</span>(<span class="nm">32</span>, <span class="nm">3</span>),     <span class="cm"># hidden → output</span>
+    nn.<span class="fn">Softmax</span>(dim=-<span class="nm">1</span>)    <span class="cm"># multi-class output</span>
+)</pre>
+
+    <div class="sub-title">Custom nn.Module Class</div>
+    <pre><span class="kw">class</span> <span class="fn">TriageNet</span>(nn.<span class="fn">Module</span>):
+    <span class="cm">"""MediLens triage classifier"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="op">self</span>, input_dim, num_classes):
+        <span class="fn">super</span>().<span class="fn">__init__</span>()
+        <span class="op">self</span>.fc1 = nn.<span class="fn">Linear</span>(input_dim, <span class="nm">128</span>)
+        <span class="op">self</span>.fc2 = nn.<span class="fn">Linear</span>(<span class="nm">128</span>, <span class="nm">64</span>)
+        <span class="op">self</span>.fc3 = nn.<span class="fn">Linear</span>(<span class="nm">64</span>, num_classes)
+        <span class="op">self</span>.relu    = nn.<span class="fn">ReLU</span>()
+        <span class="op">self</span>.dropout = nn.<span class="fn">Dropout</span>(p=<span class="nm">0.2</span>)
+
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="op">self</span>, x):
+        <span class="cm"># Forward pass — data flows through layers</span>
+        x = <span class="op">self</span>.relu(<span class="op">self</span>.fc1(x))
+        x = <span class="op">self</span>.dropout(x)
+        x = <span class="op">self</span>.relu(<span class="op">self</span>.fc2(x))
+        x = <span class="op">self</span>.fc3(x)   <span class="cm"># raw logits, no activation</span>
+        <span class="kw">return</span> x
+
+<span class="cm"># Create model</span>
+model = <span class="fn">TriageNet</span>(input_dim=<span class="nm">20</span>, num_classes=<span class="nm">4</span>)
+<span class="kw">print</span>(model)</pre>
+
+    <div class="sub-title">Forward Pass — Manually</div>
+    <pre><span class="cm"># Dummy input: batch of 8, each with 20 features</span>
+x = torch.<span class="fn">randn</span>(<span class="nm">8</span>, <span class="nm">20</span>)
+
+<span class="cm"># Forward pass — get predictions</span>
+output = <span class="fn">model</span>(x)
+<span class="kw">print</span>(output.shape)   <span class="cm"># torch.Size([8, 4])</span>
+<span class="cm"># 8 patients, 4 triage class probabilities each</span>
+
+<span class="cm"># Get predicted class per patient</span>
+predicted = output.<span class="fn">argmax</span>(dim=<span class="nm">1</span>)
+<span class="kw">print</span>(predicted)   <span class="cm"># e.g. tensor([2,0,3,1,2,0,1,3])</span></pre>
+
+    <div class="box-blue">
+      <strong>💡 nn.Module vs nn.Sequential</strong>
+      Use <span class="hl">nn.Sequential</span> for simple linear stacks of layers. Use <span class="hl">nn.Module</span> when you need custom forward logic, skip connections, or multiple input paths. Custom module is always more flexible.
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Training Loop</div>
+
+    <pre><span class="kw">import</span> torch.optim <span class="kw">as</span> optim
+
+<span class="cm"># Loss + optimizer</span>
+criterion = nn.<span class="fn">CrossEntropyLoss</span>()   <span class="cm"># multi-class</span>
+optimizer = optim.<span class="fn">Adam</span>(
+    model.<span class="fn">parameters</span>(), lr=<span class="nm">0.001</span>
+)
+
+<span class="cm"># Training loop</span>
+<span class="kw">for</span> epoch <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">50</span>):
+    model.<span class="fn">train</span>()          <span class="cm"># enable dropout etc</span>
+
+    <span class="kw">for</span> X_batch, y_batch <span class="kw">in</span> train_loader:
+
+        <span class="cm"># 1. Zero gradients from last step</span>
+        optimizer.<span class="fn">zero_grad</span>()
+
+        <span class="cm"># 2. Forward pass</span>
+        predictions = <span class="fn">model</span>(X_batch)
+
+        <span class="cm"># 3. Compute loss</span>
+        loss = <span class="fn">criterion</span>(predictions, y_batch)
+
+        <span class="cm"># 4. Backward pass (compute gradients)</span>
+        loss.<span class="fn">backward</span>()
+
+        <span class="cm"># 5. Update weights</span>
+        optimizer.<span class="fn">step</span>()
+
+    <span class="kw">print</span>(<span class="fn">f</span><span class="st">"Epoch {epoch}: loss={loss.item():.4f}"</span>)</pre>
+
+    <div class="sub-title">Loss Functions — Which to Use</div>
+    <table>
+      <tr><th>Task</th><th>Loss Function</th></tr>
+      <tr><td>Binary classification</td><td><span class="hl">BCELoss</span> or <span class="hl">BCEWithLogitsLoss</span></td></tr>
+      <tr><td>Multi-class classification</td><td><span class="hl">CrossEntropyLoss</span></td></tr>
+      <tr><td>Regression</td><td><span class="hl">MSELoss</span> or <span class="hl">L1Loss</span></td></tr>
+    </table>
+
+    <div class="section-title orange" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is a neural network and how does it learn?"</div>
+      <div class="a">A neural network is a stack of layers where each layer transforms its input through learned weights and biases, followed by an activation function for non-linearity. It learns through backpropagation — computing the gradient of the loss with respect to every weight, then using an optimizer like Adam to nudge each weight in the direction that reduces the loss. This repeats for many epochs until the loss converges.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "Why do we need activation functions?"</div>
+      <div class="a">Without activation functions, stacking multiple linear layers still produces a single linear transformation — the network can only learn straight-line decision boundaries. Activation functions like ReLU introduce non-linearity, allowing the network to learn complex curved patterns. ReLU is the default for hidden layers because it's fast, avoids vanishing gradients, and works well in practice.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Neuron = weighted sum of inputs + bias, passed through activation. Layers: input → hidden(s) → output. ReLU for hidden layers. Sigmoid for binary output. Softmax for multi-class output. Training: forward pass → loss → backward pass → optimizer step. Repeat per epoch.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #15 of 25 · Neural Networks Basics · Deep Learning · Maryum Akram · Next: Sheet #16 — Epochs, Batch Size, Loss Functions</div>
+</div>
+</body>
+</html>

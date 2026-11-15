@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Idempotency Keys Cheat Sheet — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #0d2b5e; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .header-brand { font-size: 10px; color: #7cb9fd; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .header-sub { font-size: 13px; color: #a0c8ff; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #7cb9fd; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #0d2b5e; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.teal { background: #0d6b5e; }
+  .section-title.red { background: #7f0000; }
+  .section-title.purple { background: #3d1a6e; }
+  .section-title.orange { background: #7a3500; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; overflow-x: auto; line-height: 1.6; }
+  .kw { color: #ff7b72; } .fn { color: #d2a8ff; } .st { color: #a5d6ff; } .cm { color: #8b949e; font-style: italic; } .nm { color: #79c0ff; } .op { color: #ffa657; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #0d2b5e; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f4f4fb; }
+  .box-green { background: #e8f5e9; border-left: 3px solid #2e7d32; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #1b5e20; }
+  .box-green strong { color: #1b5e20; font-size: 10px; display: block; margin-bottom: 2px; }
+  .box-red { background: #fdecea; border-left: 3px solid #c62828; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #7f0000; }
+  .box-red strong { color: #b71c1c; font-size: 10px; display: block; margin-bottom: 2px; }
+  .box-blue { background: #e3f2fd; border-left: 3px solid #1565c0; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #0d47a1; }
+  .box-blue strong { color: #0d47a1; font-size: 10px; display: block; margin-bottom: 2px; }
+  .qa-box { background: #fffde7; border: 1.5px solid #f9a825; border-radius: 5px; padding: 8px 10px; margin: 8px 0; font-size: 10.5px; }
+  .qa-box .q { font-weight: 700; color: #e65100; margin-bottom: 4px; }
+  .qa-box .a { color: #333; line-height: 1.5; }
+  .analogy { background: #f3e5f5; border-left: 3px solid #7b1fa2; padding: 7px 10px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 10.5px; color: #4a148c; font-style: italic; }
+  .footer { grid-column: 1/-1; background: #0d2b5e; color: #7cb9fd; font-size: 10px; text-align: center; padding: 8px; font-weight: 600; letter-spacing: 0.5px; }
+  .hl { background: #e8eaff; padding: 1px 4px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #3730a3; }
+  .step-row { display: flex; gap: 8px; align-items: flex-start; margin: 4px 0; }
+  .step-num { background: #0d2b5e; color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; flex-shrink: 0; margin-top: 1px; }
+  .step-text { font-size: 10.5px; color: #333; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <span class="header-brand">micro1 Retake Prep · Cheat Sheet #2 · 🔴 Priority Gap</span>
+      <span class="header-title">Idempotency Keys</span>
+      <span class="header-sub">UUID Deduplication · Silent Success · Client & Server Patterns · Real Code</span>
+    </div>
+    <div class="header-right">
+      Maryum Akram<br>AI Automation Engineer<br>
+      <a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a>
+    </div>
+  </div>
+
+  <!-- ══════════════ COLUMN 1 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title">What is Idempotency?</div>
+
+    <div class="analogy">
+      📱 Analogy: You press "Send Payment" and the app freezes. You panic and press it 3 more times. Idempotency means no matter how many times you pressed it — the payment only goes through ONCE. The key is what makes that possible.
+    </div>
+
+    <p>An operation is <strong>idempotent</strong> if running it once or running it 100 times produces the exact same result. No duplicates. No side effects from retries.</p>
+
+    <div class="sub-title">The Problem Without Idempotency</div>
+    <pre><span class="cm"># ❌ DANGEROUS — no idempotency</span>
+<span class="cm"># User clicks "Pay" twice due to slow network</span>
+<span class="cm"># Server receives TWO requests → charges TWICE</span>
+
+<span class="kw">def</span> <span class="fn">process_payment</span>(user_id, amount):
+    charge_card(user_id, amount)  <span class="cm"># runs twice!</span>
+    <span class="kw">return</span> {<span class="st">"status"</span>: <span class="st">"charged"</span>}</pre>
+
+    <div class="box-red">
+      <strong>⚠️ Real-world consequences without idempotency</strong>
+      Double charges on payments. Duplicate orders shipped. Duplicate records in database. Duplicate emails sent to users. All from one extra retry.
+    </div>
+
+    <div class="sub-title">What is an Idempotency Key?</div>
+    <p>A <strong>unique ID</strong> (usually a UUID) generated by the <strong>client</strong> and sent with the request. The server uses this key to check: <em>"Have I already processed this exact request?"</em></p>
+
+    <div class="step-row"><div class="step-num">1</div><div class="step-text">Client generates a UUID before sending the request</div></div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text">Client sends the UUID in the request header</div></div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text">Server checks its store: has this UUID been seen before?</div></div>
+    <div class="step-row"><div class="step-num">4</div><div class="step-text">If YES → return the stored result silently (no error!)</div></div>
+    <div class="step-row"><div class="step-num">5</div><div class="step-text">If NO → process it, store result against UUID, return result</div></div>
+
+    <div class="box-green">
+      <strong>✅ Critical rule — Silent Success, NOT an error</strong>
+      When a duplicate is detected, the server returns the ORIGINAL successful response — not a 409 error, not a rejection. The client gets the same result as if it was the first call. This is the most commonly confused point in interviews.
+    </div>
+
+    <div class="sub-title">Which HTTP Methods Need Idempotency Keys?</div>
+    <table>
+      <tr><th>Method</th><th>Naturally Idempotent?</th><th>Needs Key?</th></tr>
+      <tr><td>GET</td><td>✅ Yes — read only</td><td>No</td></tr>
+      <tr><td>PUT</td><td>✅ Yes — replaces whole resource</td><td>No</td></tr>
+      <tr><td>DELETE</td><td>✅ Yes — deleting twice = same result</td><td>No</td></tr>
+      <tr><td><strong>POST</strong></td><td>❌ No — creates new each time</td><td><strong>YES</strong></td></tr>
+      <tr><td><strong>PATCH</strong></td><td>❌ Depends on operation</td><td><strong>Sometimes</strong></td></tr>
+    </table>
+
+  </div>
+
+  <!-- ══════════════ COLUMN 2 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title teal">Client-Side Implementation</div>
+
+    <div class="sub-title">Generating the UUID Key (Client)</div>
+    <pre><span class="kw">import</span> uuid
+<span class="kw">import</span> requests
+
+<span class="cm"># ✅ Generate a unique key BEFORE the request</span>
+<span class="cm"># Store it so you can reuse on retry</span>
+idempotency_key = <span class="fn">str</span>(uuid.<span class="fn">uuid4</span>())
+<span class="cm"># Example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"</span>
+
+<span class="cm"># Send it as a header with your request</span>
+response = requests.<span class="fn">post</span>(
+    <span class="st">"https://api.yourapp.com/payments"</span>,
+    headers={
+        <span class="st">"Idempotency-Key"</span>: idempotency_key,
+        <span class="st">"Content-Type"</span>: <span class="st">"application/json"</span>
+    },
+    json={
+        <span class="st">"user_id"</span>: <span class="st">"user_123"</span>,
+        <span class="st">"amount"</span>: <span class="nm">5000</span>,
+        <span class="st">"currency"</span>: <span class="st">"USD"</span>
+    }
+)</pre>
+
+    <div class="sub-title">Client Retry Logic (Reuse the SAME key)</div>
+    <pre><span class="kw">import</span> uuid, requests, time
+
+<span class="kw">def</span> <span class="fn">safe_payment_with_retry</span>(user_id, amount):
+    <span class="cm"># Generate key ONCE — reuse on all retries</span>
+    key = <span class="fn">str</span>(uuid.<span class="fn">uuid4</span>())
+
+    <span class="kw">for</span> attempt <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">3</span>):
+        <span class="kw">try</span>:
+            resp = requests.<span class="fn">post</span>(
+                <span class="st">"https://api.yourapp.com/payments"</span>,
+                headers={<span class="st">"Idempotency-Key"</span>: key},
+                json={<span class="st">"user_id"</span>: user_id, <span class="st">"amount"</span>: amount},
+                timeout=<span class="nm">5</span>
+            )
+            <span class="cm"># Both 200 (new) and 200 (duplicate)</span>
+            <span class="cm"># return same response — client can't tell</span>
+            <span class="kw">return</span> resp.<span class="fn">json</span>()
+
+        <span class="kw">except</span> requests.exceptions.<span class="fn">Timeout</span>:
+            <span class="kw">if</span> attempt == <span class="nm">2</span>:
+                <span class="kw">raise</span>
+            time.<span class="fn">sleep</span>(<span class="nm">2</span> ** attempt)  <span class="cm"># backoff</span></pre>
+
+    <div class="box-blue">
+      <strong>🔑 Key rule: Same key = same request</strong>
+      Generate the UUID once per logical operation. If network fails and you retry, send the SAME UUID. A new UUID = a new operation = potential duplicate.
+    </div>
+
+    <div class="section-title purple" style="margin-top: 10px;">Server-Side Implementation</div>
+
+    <div class="sub-title">Server: Check → Process → Store (Python/Flask)</div>
+    <pre><span class="kw">from</span> flask <span class="kw">import</span> Flask, request, jsonify
+<span class="kw">import</span> uuid
+
+app = <span class="fn">Flask</span>(__name__)
+
+<span class="cm"># In production: use Redis or PostgreSQL</span>
+<span class="cm"># Here: simple dict for clarity</span>
+processed_keys = {}  <span class="cm"># key → stored_result</span>
+
+@app.<span class="fn">route</span>(<span class="st">"/payments"</span>, methods=[<span class="st">"POST"</span>])
+<span class="kw">def</span> <span class="fn">process_payment</span>():
+    idem_key = request.headers.<span class="fn">get</span>(<span class="st">"Idempotency-Key"</span>)
+
+    <span class="cm"># ✅ STEP 1: Validate key exists</span>
+    <span class="kw">if not</span> idem_key:
+        <span class="kw">return</span> <span class="fn">jsonify</span>({<span class="st">"error"</span>: <span class="st">"Key required"</span>}), <span class="nm">400</span>
+
+    <span class="cm"># ✅ STEP 2: Check for duplicate</span>
+    <span class="kw">if</span> idem_key <span class="kw">in</span> processed_keys:
+        <span class="cm"># Silent success — return original result</span>
+        <span class="kw">return</span> <span class="fn">jsonify</span>(processed_keys[idem_key]), <span class="nm">200</span>
+
+    <span class="cm"># ✅ STEP 3: Process the real operation</span>
+    data = request.<span class="fn">get_json</span>()
+    result = {
+        <span class="st">"payment_id"</span>: <span class="fn">str</span>(uuid.<span class="fn">uuid4</span>()),
+        <span class="st">"status"</span>: <span class="st">"success"</span>,
+        <span class="st">"amount"</span>: data[<span class="st">"amount"</span>]
+    }
+
+    <span class="cm"># ✅ STEP 4: Store result against key</span>
+    processed_keys[idem_key] = result
+
+    <span class="kw">return</span> <span class="fn">jsonify</span>(result), <span class="nm">200</span></pre>
+
+  </div>
+
+  <!-- ══════════════ COLUMN 3 ══════════════ -->
+  <div class="col">
+
+    <div class="section-title red">Production Patterns</div>
+
+    <div class="sub-title">Store Keys in PostgreSQL (Production)</div>
+    <pre><span class="cm">-- Create table to store idempotency keys</span>
+<span class="kw">CREATE TABLE</span> idempotency_keys (
+    key         <span class="op">UUID</span> <span class="kw">PRIMARY KEY</span>,
+    result      <span class="op">JSONB</span>,
+    created_at  <span class="op">TIMESTAMPTZ</span> <span class="kw">DEFAULT</span> now(),
+    expires_at  <span class="op">TIMESTAMPTZ</span>
+);
+
+<span class="cm">-- On every POST request, try to insert key</span>
+<span class="cm">-- If it already exists, return stored result</span>
+<span class="kw">INSERT INTO</span> idempotency_keys (key, result)
+<span class="kw">VALUES</span> ($1, $2)
+<span class="kw">ON CONFLICT</span> (key) <span class="kw">DO NOTHING</span>;</pre>
+
+    <div class="box-blue">
+      <strong>🔗 Connection to your other gap</strong>
+      The <span class="hl">ON CONFLICT DO NOTHING</span> above is the atomic upsert pattern from Sheet #3. Idempotency keys USE atomic upsert under the hood. These two topics are directly connected.
+    </div>
+
+    <div class="sub-title">Key Expiry — Don't Store Forever</div>
+    <pre><span class="cm">-- Clean up old keys after 24 hours</span>
+<span class="kw">DELETE FROM</span> idempotency_keys
+<span class="kw">WHERE</span> created_at &lt; now() - <span class="kw">INTERVAL</span> <span class="st">'24 hours'</span>;
+
+<span class="cm"># In Python with Redis (common production choice)</span>
+<span class="kw">import</span> redis
+r = redis.<span class="fn">Redis</span>()
+
+<span class="kw">def</span> <span class="fn">check_or_set_key</span>(key, result):
+    <span class="cm"># Store with 24 hour expiry</span>
+    stored = r.<span class="fn">set</span>(
+        <span class="fn">f</span><span class="st">"idem:{key}"</span>, result,
+        nx=<span class="nm">True</span>,      <span class="cm"># only set if NOT exists</span>
+        ex=<span class="nm">86400</span>      <span class="cm"># expire after 24 hours</span>
+    )
+    <span class="kw">return</span> stored <span class="kw">is</span> <span class="nm">None</span>  <span class="cm"># True = duplicate</span></pre>
+
+    <div class="sub-title">Idempotency in Your Projects</div>
+    <div class="box-blue">
+      <strong>🏥 MediLens — Patient Intake</strong>
+      If a patient's intake form is submitted twice due to a slow connection, the idempotency key ensures only one appointment is booked. The second submission silently returns the first booking confirmation.
+    </div>
+    <div class="box-blue">
+      <strong>🛒 Lumina — Order Support</strong>
+      Shopify webhook fires twice for the same order event (it happens). Idempotency key on the webhook handler prevents two Slack alerts and two database records for the same order.
+    </div>
+
+    <div class="section-title orange" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is an idempotency key and why do you need one?"</div>
+      <div class="a">An idempotency key is a unique ID — usually a UUID — that the client generates and sends with a POST request. The server uses it to detect if the same request has already been processed. If yes, it returns the original result silently instead of processing again. This prevents duplicate payments, duplicate records, or duplicate emails when a network failure causes a client to retry. GET and PUT are naturally idempotent — POST is not, so POST needs this key.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What does the server return for a duplicate request — an error?"</div>
+      <div class="a">No — this is a common misconception. The server returns a 200 with the original successful response, exactly as if it was the first call. It is a silent success. Returning a 409 Conflict or an error would break retry logic because the client would treat it as a failure and stop retrying, or worse, escalate an alert when nothing actually went wrong.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "Where would you store idempotency keys in production?"</div>
+      <div class="a">Either Redis with a TTL of 24 hours — fast, automatic expiry, perfect for high-volume APIs — or a PostgreSQL table with a UUID primary key and a timestamp column for cleanup. I've used PostgreSQL with Supabase in my projects so the INSERT ON CONFLICT pattern is natural for me. Redis is better when you need microsecond response times at scale.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary to memorize</strong>
+      Idempotency key = UUID generated by client, sent in header, checked by server before processing. Duplicate = return original result silently (200, not error). Prevents double charges, duplicate records, duplicate emails on retry.
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Cheat Sheet #2 of 25 · Idempotency Keys · micro1 Retake Prep · Maryum Akram · Next: Sheet #3 — Atomic Upsert (INSERT...ON CONFLICT)
+  </div>
+
+</div>
+</body>
+</html>

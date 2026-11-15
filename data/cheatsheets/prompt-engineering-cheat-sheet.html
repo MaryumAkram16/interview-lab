@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Engineering — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #0a0a2a; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #82b1ff; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #b3d4ff; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #82b1ff; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #0a0a2a; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.green  { background: #0a2a1a; }
+  .section-title.orange { background: #7a3500; }
+  .section-title.teal   { background: #003d3d; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #0a0a2a; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f4f4ff; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#0a0a2a;color:#82b1ff;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+  .prompt-box{background:#1e1e2e;border-left:3px solid #82b1ff;padding:8px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#cdd6f4;line-height:1.6}
+  .prompt-label{font-size:9px;color:#82b1ff;font-weight:700;margin-bottom:4px;font-family:'Inter',sans-serif}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">LLMs & Generative AI · Cheat Sheet #19</div>
+      <div class="header-title">Prompt Engineering</div>
+      <div class="header-sub">System Prompts · Few-Shot · Chain-of-Thought · Temperature · Output Formatting</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Prompt Anatomy</div>
+    <div class="analogy">🎭 A system prompt is the director's brief to an actor. A user message is the scene. The better your brief, the better the performance. Vague instructions = unpredictable output. Precise instructions = consistent, reliable output.</div>
+
+    <div class="sub-title">The Four Components</div>
+    <table>
+      <tr><th>Component</th><th>Purpose</th></tr>
+      <tr><td><strong>System Prompt</strong></td><td>Set persona, constraints, output format, context</td></tr>
+      <tr><td><strong>Few-shot Examples</strong></td><td>Show the model exactly what you want via examples</td></tr>
+      <tr><td><strong>User Message</strong></td><td>The actual task or question</td></tr>
+      <tr><td><strong>Context/Data</strong></td><td>Documents, data, retrieved chunks to reason over</td></tr>
+    </table>
+
+    <div class="sub-title">System Prompt — MediLens Example</div>
+    <div class="prompt-box">
+      <div class="prompt-label">SYSTEM PROMPT</div>
+You are a medical triage assistant for MediLens hospital platform. Your role is to assess patient symptoms and assign a triage priority level.
+
+Always respond in valid JSON with this structure:
+{
+  "priority": "urgent|high|medium|low",
+  "reason": "brief clinical justification",
+  "recommended_action": "string"
+}
+
+Rules:
+- Never diagnose. Only triage.
+- If symptoms suggest emergency (chest pain, difficulty breathing), always set priority: "urgent"
+- Be concise. Max 2 sentences per field.
+    </div>
+
+    <div class="sub-title">Zero-Shot vs Few-Shot vs Chain-of-Thought</div>
+    <table>
+      <tr><th>Type</th><th>What It Does</th><th>Use When</th></tr>
+      <tr><td><strong>Zero-shot</strong></td><td>No examples — just instruct</td><td>Simple, clear tasks</td></tr>
+      <tr><td><strong>Few-shot</strong></td><td>2–5 examples before the task</td><td>Consistent format needed</td></tr>
+      <tr><td><strong>Chain-of-thought</strong></td><td>"Think step by step"</td><td>Reasoning, math, logic</td></tr>
+      <tr><td><strong>Self-consistency</strong></td><td>Sample multiple outputs, vote</td><td>High-stakes answers</td></tr>
+    </table>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title green">Prompting Patterns in Code</div>
+
+    <div class="sub-title">Few-Shot Prompting</div>
+    <pre><span class="kw">import</span> openai
+
+client = openai.<span class="fn">OpenAI</span>()
+
+response = client.chat.completions.<span class="fn">create</span>(
+    model=<span class="st">"gpt-4o"</span>,
+    messages=[
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>:
+            <span class="st">"Classify complaint severity: low/medium/high"</span>},
+
+        <span class="cm"># Few-shot examples</span>
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"My order is late"</span>},
+        {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">"low"</span>},
+
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"Wrong item sent"</span>},
+        {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">"medium"</span>},
+
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"Charged twice, no refund"</span>},
+        {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">"high"</span>},
+
+        <span class="cm"># Actual task</span>
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"Package broken on arrival"</span>},
+    ]
+)</pre>
+
+    <div class="sub-title">Chain-of-Thought Prompting</div>
+    <div class="prompt-box">
+      <div class="prompt-label">CHAIN-OF-THOUGHT PATTERN</div>
+A patient reports: chest tightness, sweating, left arm pain, started 20 minutes ago.
+
+Think through this step by step:
+1. What are the key symptoms?
+2. Which conditions could cause these symptoms?
+3. What is the urgency level and why?
+4. What immediate action should be taken?
+
+Then give your final triage assessment.
+    </div>
+
+    <div class="sub-title">JSON Output Forcing</div>
+    <pre><span class="cm"># Force structured JSON output</span>
+response = client.chat.completions.<span class="fn">create</span>(
+    model=<span class="st">"gpt-4o"</span>,
+    response_format={<span class="st">"type"</span>: <span class="st">"json_object"</span>},
+    messages=[{
+        <span class="st">"role"</span>: <span class="st">"system"</span>,
+        <span class="st">"content"</span>: <span class="st">"Return ONLY valid JSON. No prose."</span>
+    }, {
+        <span class="st">"role"</span>: <span class="st">"user"</span>,
+        <span class="st">"content"</span>: <span class="st">"Triage: headache for 3 days"</span>
+    }]
+)
+<span class="kw">import</span> json
+result = json.<span class="fn">loads</span>(response.choices[<span class="nm">0</span>].message.content)</pre>
+
+    <div class="box-blue">
+      <strong>💡 This is exactly your complaint system</strong>
+      Your AI Complaint Management System uses GPT-4o with a structured system prompt to classify complaints by severity and route them. That IS production prompt engineering — you can speak to this directly in interviews.
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title orange">Temperature + Parameters</div>
+
+    <table>
+      <tr><th>Parameter</th><th>Range</th><th>Effect</th></tr>
+      <tr><td><strong>temperature</strong></td><td>0–2</td><td>0 = deterministic, 1 = creative, 2 = chaotic</td></tr>
+      <tr><td><strong>max_tokens</strong></td><td>1–128k</td><td>Max length of response</td></tr>
+      <tr><td><strong>top_p</strong></td><td>0–1</td><td>Nucleus sampling — use instead of high temp</td></tr>
+      <tr><td><strong>frequency_penalty</strong></td><td>-2 to 2</td><td>Reduces repetition of tokens</td></tr>
+      <tr><td><strong>presence_penalty</strong></td><td>-2 to 2</td><td>Encourages new topics</td></tr>
+    </table>
+
+    <div class="sub-title">Temperature Guide</div>
+    <table>
+      <tr><th>Use Case</th><th>Temperature</th></tr>
+      <tr><td>Medical triage, data extraction</td><td>0.0 – 0.2</td></tr>
+      <tr><td>Summarization, classification</td><td>0.3 – 0.5</td></tr>
+      <tr><td>Chatbots, Q&A</td><td>0.5 – 0.7</td></tr>
+      <tr><td>Creative writing, brainstorm</td><td>0.8 – 1.2</td></tr>
+    </table>
+
+    <div class="sub-title">Prompt Engineering Best Practices</div>
+    <table>
+      <tr><th>Do ✅</th><th>Don't ❌</th></tr>
+      <tr><td>Be explicit about format</td><td>Leave output format vague</td></tr>
+      <tr><td>Give few-shot examples</td><td>Assume model knows your intent</td></tr>
+      <tr><td>Specify constraints</td><td>Use overly complex instructions</td></tr>
+      <tr><td>Test edge cases</td><td>Rely on one test prompt</td></tr>
+      <tr><td>Use delimiters (XML tags, ---)</td><td>Mix instructions with data</td></tr>
+    </table>
+
+    <div class="sub-title">Delimiter Pattern</div>
+    <div class="prompt-box">
+      <div class="prompt-label">CLEAR DELIMITER EXAMPLE</div>
+Summarize the patient note below in 2 sentences.
+
+&lt;patient_note&gt;
+Patient is a 45-year-old male presenting with...
+&lt;/patient_note&gt;
+
+Return only the summary. No preamble.
+    </div>
+
+    <div class="section-title teal" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is prompt engineering and why does it matter?"</div>
+      <div class="a">Prompt engineering is the practice of crafting inputs to LLMs to reliably produce the desired output. It matters because the same model can give wildly different results depending on how the prompt is structured. Techniques like few-shot examples, chain-of-thought reasoning, and explicit output formatting dramatically improve consistency. In my projects I use structured system prompts with JSON output constraints so n8n workflows can parse the AI response reliably every time.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Prompt = system prompt + examples + user message + context. Zero-shot = instruct only. Few-shot = show examples. Chain-of-thought = step-by-step reasoning. Temperature 0 = deterministic output (use for production). Force JSON output for structured pipelines.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #19 of 25 · Prompt Engineering · LLMs & Gen AI · Maryum Akram · Next: Sheet #20 — RAG Pipelines</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>List Comprehensions + OOP — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #1a1a00; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #ffe07a; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #fff0a0; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #ffe07a; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #1a1a00; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.green  { background: #1a3d1a; }
+  .section-title.purple { background: #2d1b4e; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #1a1a00; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #fffef0; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#1a1a00;color:#ffe07a;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">Python Internals · Cheat Sheet #7</div>
+      <div class="header-title">List Comprehensions + OOP</div>
+      <div class="header-sub">Comprehensions · Lambda · Classes · Inheritance · __init__ · __str__</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Comprehensions</div>
+    <div class="analogy">🏗️ A comprehension is a one-line factory: "build me a list/dict/set by running this operation on every item, optionally filtered by a condition." Cleaner and faster than a for loop.</div>
+
+    <div class="sub-title">List Comprehension</div>
+    <pre><span class="cm"># Pattern: [expression for item in iterable if condition]</span>
+
+<span class="cm"># Basic — square every number</span>
+squares = [x**<span class="nm">2</span> <span class="kw">for</span> x <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">5</span>)]
+<span class="cm"># [0, 1, 4, 9, 16]</span>
+
+<span class="cm"># With filter — only even numbers</span>
+evens = [x <span class="kw">for</span> x <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">10</span>) <span class="kw">if</span> x % <span class="nm">2</span> == <span class="nm">0</span>]
+<span class="cm"># [0, 2, 4, 6, 8]</span>
+
+<span class="cm"># Transform strings</span>
+names = [<span class="st">"maryum"</span>, <span class="st">"ali"</span>, <span class="st">"sara"</span>]
+caps = [n.<span class="fn">capitalize</span>() <span class="kw">for</span> n <span class="kw">in</span> names]
+<span class="cm"># ["Maryum", "Ali", "Sara"]</span>
+
+<span class="cm"># Nested — flatten a 2D list</span>
+matrix = [[<span class="nm">1</span>,<span class="nm">2</span>], [<span class="nm">3</span>,<span class="nm">4</span>], [<span class="nm">5</span>,<span class="nm">6</span>]]
+flat = [x <span class="kw">for</span> row <span class="kw">in</span> matrix <span class="kw">for</span> x <span class="kw">in</span> row]
+<span class="cm"># [1, 2, 3, 4, 5, 6]</span></pre>
+
+    <div class="sub-title">Dict & Set Comprehensions</div>
+    <pre><span class="cm"># Dict comprehension</span>
+word_lengths = {w: <span class="fn">len</span>(w) <span class="kw">for</span> w <span class="kw">in</span> names}
+<span class="cm"># {"maryum": 6, "ali": 3, "sara": 4}</span>
+
+<span class="cm"># Set comprehension — unique lengths</span>
+unique_lens = {<span class="fn">len</span>(w) <span class="kw">for</span> w <span class="kw">in</span> names}
+<span class="cm"># {3, 4, 6}</span>
+
+<span class="cm"># Generator expression (lazy, memory efficient)</span>
+total = <span class="fn">sum</span>(x**<span class="nm">2</span> <span class="kw">for</span> x <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1000000</span>))
+<span class="cm"># () not [] — doesn't build full list in memory</span></pre>
+
+    <div class="sub-title">Lambda Functions</div>
+    <pre><span class="cm"># Lambda = small anonymous one-line function</span>
+<span class="cm"># Pattern: lambda args: expression</span>
+
+double = <span class="kw">lambda</span> x: x * <span class="nm">2</span>
+<span class="kw">print</span>(<span class="fn">double</span>(<span class="nm">5</span>))   <span class="cm"># 10</span>
+
+<span class="cm"># Most common use — sorting by key</span>
+users = [
+    {<span class="st">"name"</span>: <span class="st">"Ali"</span>,    <span class="st">"age"</span>: <span class="nm">25</span>},
+    {<span class="st">"name"</span>: <span class="st">"Maryum"</span>, <span class="st">"age"</span>: <span class="nm">27</span>},
+    {<span class="st">"name"</span>: <span class="st">"Sara"</span>,   <span class="st">"age"</span>: <span class="nm">22</span>},
+]
+<span class="fn">sorted</span>(users, key=<span class="kw">lambda</span> u: u[<span class="st">"age"</span>])
+<span class="cm"># Sara (22), Ali (25), Maryum (27)</span>
+
+<span class="cm"># With filter() and map()</span>
+nums = [<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>,<span class="nm">4</span>,<span class="nm">5</span>]
+evens  = <span class="fn">list</span>(<span class="fn">filter</span>(<span class="kw">lambda</span> x: x%<span class="nm">2</span>==<span class="nm">0</span>, nums))
+doubled = <span class="fn">list</span>(<span class="fn">map</span>(<span class="kw">lambda</span> x: x*<span class="nm">2</span>, nums))</pre>
+
+    <div class="box-blue">
+      <strong>💡 Comprehension vs for loop — when to use which</strong>
+      Use comprehension for simple transforms and filters — it's faster and more Pythonic. Use a regular for loop when logic is complex, multi-line, or needs error handling inside. Never sacrifice readability for cleverness.
+    </div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">OOP — Classes & Objects</div>
+    <div class="analogy">🏭 A class is a blueprint. An object is a thing built from that blueprint. A Car class defines what all cars have. Your specific red Toyota is an object — one instance of that blueprint.</div>
+
+    <div class="sub-title">Class Basics</div>
+    <pre><span class="kw">class</span> <span class="fn">AIAgent</span>:
+    <span class="cm"># Class variable — shared by ALL instances</span>
+    agent_type = <span class="st">"Language Model Agent"</span>
+
+    <span class="cm"># __init__ = constructor, runs on creation</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="op">self</span>, name, model):
+        <span class="cm"># Instance variables — unique per object</span>
+        <span class="op">self</span>.name  = name
+        <span class="op">self</span>.model = model
+        <span class="op">self</span>.memory = []  <span class="cm"># each agent has own memory</span>
+
+    <span class="cm"># Instance method — uses self</span>
+    <span class="kw">def</span> <span class="fn">respond</span>(<span class="op">self</span>, prompt):
+        <span class="op">self</span>.memory.<span class="fn">append</span>(prompt)
+        <span class="kw">return</span> <span class="fn">f</span><span class="st">"{self.name} ({self.model}): Processing..."</span>
+
+    <span class="cm"># __str__ — controls print() output</span>
+    <span class="kw">def</span> <span class="fn">__str__</span>(<span class="op">self</span>):
+        <span class="kw">return</span> <span class="fn">f</span><span class="st">"Agent: {self.name} | Model: {self.model}"</span>
+
+    <span class="cm"># __repr__ — controls repr() / debugging</span>
+    <span class="kw">def</span> <span class="fn">__repr__</span>(<span class="op">self</span>):
+        <span class="kw">return</span> <span class="fn">f</span><span class="st">"AIAgent('{self.name}', '{self.model}')"</span>
+
+<span class="cm"># Create instances</span>
+agent1 = <span class="fn">AIAgent</span>(<span class="st">"MediBot"</span>, <span class="st">"gpt-4o"</span>)
+agent2 = <span class="fn">AIAgent</span>(<span class="st">"LuminaBot"</span>, <span class="st">"gemini"</span>)
+
+<span class="kw">print</span>(agent1)           <span class="cm"># Agent: MediBot | Model: gpt-4o</span>
+<span class="kw">print</span>(agent1.<span class="fn">respond</span>(<span class="st">"hello"</span>))</pre>
+
+    <div class="sub-title">Inheritance</div>
+    <pre><span class="cm"># Child class inherits from parent</span>
+<span class="kw">class</span> <span class="fn">VoiceAgent</span>(<span class="fn">AIAgent</span>):  <span class="cm"># inherits AIAgent</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="op">self</span>, name, model, voice_id):
+        <span class="cm"># Call parent __init__ first</span>
+        <span class="fn">super</span>().<span class="fn">__init__</span>(name, model)
+        <span class="op">self</span>.voice_id = voice_id  <span class="cm"># extra attribute</span>
+
+    <span class="cm"># Override parent method</span>
+    <span class="kw">def</span> <span class="fn">respond</span>(<span class="op">self</span>, prompt):
+        base = <span class="fn">super</span>().<span class="fn">respond</span>(prompt)
+        <span class="kw">return</span> <span class="fn">f</span><span class="st">"{base} [Voice: {self.voice_id}]"</span>
+
+<span class="cm"># Usage</span>
+lumina = <span class="fn">VoiceAgent</span>(<span class="st">"Lumina"</span>, <span class="st">"gpt-4o"</span>, <span class="st">"voice_01"</span>)
+<span class="kw">print</span>(<span class="fn">isinstance</span>(lumina, VoiceAgent))  <span class="cm"># True</span>
+<span class="kw">print</span>(<span class="fn">isinstance</span>(lumina, AIAgent))     <span class="cm"># True!</span></pre>
+
+    <div class="box-green">
+      <strong>✅ super() — always call it in child __init__</strong>
+      <span class="hl">super().__init__(...)</span> runs the parent class constructor, setting up all the parent's attributes. If you forget it, the child object won't have the parent's instance variables.
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Dunder Methods & Properties</div>
+
+    <div class="sub-title">Key Dunder (Magic) Methods</div>
+    <table>
+      <tr><th>Method</th><th>Triggered by</th></tr>
+      <tr><td><span class="hl">__init__</span></td><td><span class="hl">ClassName()</span> — constructor</td></tr>
+      <tr><td><span class="hl">__str__</span></td><td><span class="hl">print(obj)</span> — human readable</td></tr>
+      <tr><td><span class="hl">__repr__</span></td><td><span class="hl">repr(obj)</span> — debugging</td></tr>
+      <tr><td><span class="hl">__len__</span></td><td><span class="hl">len(obj)</span></td></tr>
+      <tr><td><span class="hl">__eq__</span></td><td><span class="hl">obj1 == obj2</span></td></tr>
+      <tr><td><span class="hl">__lt__</span></td><td><span class="hl">obj1 &lt; obj2</span></td></tr>
+      <tr><td><span class="hl">__getitem__</span></td><td><span class="hl">obj[key]</span></td></tr>
+      <tr><td><span class="hl">__contains__</span></td><td><span class="hl">x in obj</span></td></tr>
+    </table>
+
+    <pre><span class="cm"># Example — __len__ and __eq__</span>
+<span class="kw">class</span> <span class="fn">WorkflowPipeline</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="op">self</span>, steps):
+        <span class="op">self</span>.steps = steps
+
+    <span class="kw">def</span> <span class="fn">__len__</span>(<span class="op">self</span>):
+        <span class="kw">return</span> <span class="fn">len</span>(<span class="op">self</span>.steps)
+
+    <span class="kw">def</span> <span class="fn">__eq__</span>(<span class="op">self</span>, other):
+        <span class="kw">return</span> <span class="op">self</span>.steps == other.steps
+
+pipeline = <span class="fn">WorkflowPipeline</span>([<span class="st">"triage"</span>,<span class="st">"schedule"</span>])
+<span class="kw">print</span>(<span class="fn">len</span>(pipeline))  <span class="cm"># 2</span></pre>
+
+    <div class="sub-title">@staticmethod vs @classmethod</div>
+    <pre><span class="kw">class</span> <span class="fn">Agent</span>:
+    agent_count = <span class="nm">0</span>
+
+    <span class="cm"># @classmethod — access/modify class state</span>
+    <span class="cm"># receives cls (the class itself) not self</span>
+    @<span class="fn">classmethod</span>
+    <span class="kw">def</span> <span class="fn">get_count</span>(cls):
+        <span class="kw">return</span> cls.agent_count
+
+    <span class="cm"># @staticmethod — utility, no self or cls</span>
+    <span class="cm"># just a regular function in the class namespace</span>
+    @<span class="fn">staticmethod</span>
+    <span class="kw">def</span> <span class="fn">validate_model</span>(model_name):
+        <span class="kw">return</span> model_name <span class="kw">in</span> [<span class="st">"gpt-4o"</span>, <span class="st">"gemini"</span>]
+
+<span class="kw">print</span>(Agent.<span class="fn">validate_model</span>(<span class="st">"gpt-4o"</span>))  <span class="cm"># True</span></pre>
+
+    <div class="section-title purple" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between a class variable and an instance variable?"</div>
+      <div class="a">A class variable is defined at the class level and shared by all instances — changing it affects every object. An instance variable is defined in __init__ using self and is unique to each object. In my AIAgent class, agent_type is a class variable shared by all agents, while name and model are instance variables unique to each agent.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "When would you use a list comprehension vs a for loop?"</div>
+      <div class="a">List comprehensions are best for simple, readable one-line transforms — filtering a list, mapping a function, or building a new collection. I use regular for loops when the logic spans multiple lines, needs error handling inside, or involves complex state. Readability always comes first — a comprehension that needs a comment to explain is better written as a loop.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Comprehensions: [expr for x in iterable if cond] — clean, fast, Pythonic. Classes: blueprint for objects. __init__ sets instance state. super() calls parent constructor. Dunder methods make objects behave like built-ins.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #7 of 25 · Comprehensions + OOP · Python Internals · Maryum Akram · Next: Sheet #8 — NumPy Memory + Arrays</div>
+</div>
+</body>
+</html>

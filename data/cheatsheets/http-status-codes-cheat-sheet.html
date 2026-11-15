@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP Status Codes + Error Handling — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #1a0a00; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #ffab40; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #ffd180; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #ffab40; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #1a0a00; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.green  { background: #1a3d1a; }
+  .section-title.purple { background: #2d1b4e; }
+  .section-title.teal   { background: #003d3d; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #1a0a00; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #fffaf4; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .box-orange{background:#fff3e0;border-left:3px solid #e65100;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#bf360c}
+  .box-orange strong{color:#bf360c;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#1a0a00;color:#ffab40;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+  .status-badge { display:inline-block; padding:1px 7px; border-radius:10px; font-size:9.5px; font-weight:800; font-family:'JetBrains Mono',monospace; margin-right:4px; }
+  .s2xx { background:#c8e6c9; color:#1b5e20; }
+  .s3xx { background:#e3f2fd; color:#0d47a1; }
+  .s4xx { background:#fff9c4; color:#f57f17; }
+  .s5xx { background:#fdecea; color:#b71c1c; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">API Reliability · Cheat Sheet #9</div>
+      <div class="header-title">HTTP Status Codes + Error Handling</div>
+      <div class="header-sub">2xx · 3xx · 4xx · 5xx · Retry Rules · Python Error Handling</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Status Code Groups</div>
+    <div class="analogy">📬 Status codes are the server's way of telling you what happened. Think of them like a delivery status: 2xx = delivered, 3xx = moved, 4xx = your fault, 5xx = our fault.</div>
+
+    <div class="sub-title"><span class="status-badge s2xx">2xx</span> Success</div>
+    <table>
+      <tr><th>Code</th><th>Meaning</th><th>When you see it</th></tr>
+      <tr><td><strong>200</strong></td><td>OK</td><td>GET/PUT/PATCH succeeded</td></tr>
+      <tr><td><strong>201</strong></td><td>Created</td><td>POST created a new resource</td></tr>
+      <tr><td><strong>204</strong></td><td>No Content</td><td>DELETE succeeded, no body</td></tr>
+    </table>
+
+    <div class="sub-title"><span class="status-badge s3xx">3xx</span> Redirection</div>
+    <table>
+      <tr><th>Code</th><th>Meaning</th><th>When you see it</th></tr>
+      <tr><td><strong>301</strong></td><td>Moved Permanently</td><td>URL changed forever</td></tr>
+      <tr><td><strong>302</strong></td><td>Found (Temp redirect)</td><td>Temporary new location</td></tr>
+      <tr><td><strong>304</strong></td><td>Not Modified</td><td>Cached version is still valid</td></tr>
+    </table>
+
+    <div class="sub-title"><span class="status-badge s4xx">4xx</span> Client Errors — Your Fault</div>
+    <table>
+      <tr><th>Code</th><th>Meaning</th><th>Fix</th></tr>
+      <tr><td><strong>400</strong></td><td>Bad Request</td><td>Fix your request body/params</td></tr>
+      <tr><td><strong>401</strong></td><td>Unauthorized</td><td>Add/fix auth token</td></tr>
+      <tr><td><strong>403</strong></td><td>Forbidden</td><td>Authenticated but no permission</td></tr>
+      <tr><td><strong>404</strong></td><td>Not Found</td><td>Wrong URL or resource deleted</td></tr>
+      <tr><td><strong>409</strong></td><td>Conflict</td><td>Duplicate resource, version clash</td></tr>
+      <tr><td><strong>422</strong></td><td>Unprocessable</td><td>Valid format, invalid data</td></tr>
+      <tr><td><strong>429</strong></td><td>Too Many Requests</td><td>Hit rate limit — back off!</td></tr>
+    </table>
+
+    <div class="sub-title"><span class="status-badge s5xx">5xx</span> Server Errors — Their Fault</div>
+    <table>
+      <tr><th>Code</th><th>Meaning</th><th>Action</th></tr>
+      <tr><td><strong>500</strong></td><td>Internal Server Error</td><td>Retry with backoff</td></tr>
+      <tr><td><strong>502</strong></td><td>Bad Gateway</td><td>Upstream service failed</td></tr>
+      <tr><td><strong>503</strong></td><td>Service Unavailable</td><td>Server overloaded, retry</td></tr>
+      <tr><td><strong>504</strong></td><td>Gateway Timeout</td><td>Request took too long</td></tr>
+    </table>
+
+    <div class="box-orange">
+      <strong>🔑 Critical rule — 4xx vs 5xx retry logic</strong>
+      NEVER retry 4xx errors — they won't fix themselves. The problem is in your request. ALWAYS retry 5xx errors (with backoff) — they are temporary server issues. Exception: never retry 429 immediately — wait for Retry-After header.
+    </div>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Python Error Handling</div>
+
+    <div class="sub-title">Basic requests Error Handling</div>
+    <pre><span class="kw">import</span> requests
+
+<span class="kw">def</span> <span class="fn">safe_api_call</span>(url, headers):
+    <span class="kw">try</span>:
+        response = requests.<span class="fn">get</span>(
+            url,
+            headers=headers,
+            timeout=<span class="nm">10</span>  <span class="cm"># always set timeout!</span>
+        )
+        <span class="cm"># Raises HTTPError for 4xx and 5xx</span>
+        response.<span class="fn">raise_for_status</span>()
+        <span class="kw">return</span> response.<span class="fn">json</span>()
+
+    <span class="kw">except</span> requests.exceptions.<span class="fn">HTTPError</span> <span class="kw">as</span> e:
+        status = e.response.status_code
+
+        <span class="kw">if</span> <span class="nm">400</span> <= status < <span class="nm">500</span>:
+            <span class="cm"># Client error — don't retry</span>
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="fn">f</span><span class="st">"Client error {status}: fix request"</span>)
+
+        <span class="kw">elif</span> <span class="nm">500</span> <= status < <span class="nm">600</span>:
+            <span class="cm"># Server error — safe to retry</span>
+            <span class="kw">raise</span> <span class="fn">RuntimeError</span>(<span class="fn">f</span><span class="st">"Server error {status}: retry"</span>)
+
+    <span class="kw">except</span> requests.exceptions.<span class="fn">Timeout</span>:
+        <span class="kw">raise</span> <span class="fn">TimeoutError</span>(<span class="st">"Request timed out"</span>)
+
+    <span class="kw">except</span> requests.exceptions.<span class="fn">ConnectionError</span>:
+        <span class="kw">raise</span> <span class="fn">ConnectionError</span>(<span class="st">"Network unreachable"</span>)</pre>
+
+    <div class="sub-title">Handling 401 vs 403 Correctly</div>
+    <pre><span class="kw">def</span> <span class="fn">handle_auth_errors</span>(response):
+    <span class="kw">if</span> response.status_code == <span class="nm">401</span>:
+        <span class="cm"># Not authenticated — refresh token</span>
+        new_token = <span class="fn">refresh_access_token</span>()
+        <span class="kw">return</span> <span class="fn">retry_with_token</span>(new_token)
+
+    <span class="kw">elif</span> response.status_code == <span class="nm">403</span>:
+        <span class="cm"># Authenticated but no permission</span>
+        <span class="cm"># Retrying won't help — user needs access</span>
+        <span class="kw">raise</span> <span class="fn">PermissionError</span>(
+            <span class="st">"Access denied — check user permissions"</span>
+        )</pre>
+
+    <div class="sub-title">Handling 429 Rate Limit</div>
+    <pre><span class="kw">import</span> time
+
+<span class="kw">def</span> <span class="fn">handle_rate_limit</span>(response):
+    <span class="kw">if</span> response.status_code == <span class="nm">429</span>:
+        <span class="cm"># Check for Retry-After header</span>
+        retry_after = response.headers.<span class="fn">get</span>(
+            <span class="st">"Retry-After"</span>, <span class="nm">60</span>  <span class="cm"># default 60s</span>
+        )
+        <span class="kw">print</span>(<span class="fn">f</span><span class="st">"Rate limited. Waiting {retry_after}s"</span>)
+        time.<span class="fn">sleep</span>(<span class="fn">int</span>(retry_after))
+        <span class="kw">return</span> <span class="nm">True</span>   <span class="cm"># signal: retry the call</span>
+    <span class="kw">return</span> <span class="nm">False</span></pre>
+
+    <div class="box-red">
+      <strong>⚠️ Always set timeout= on every request</strong>
+      Without a timeout, a hanging server can freeze your entire application forever. Set <span class="hl">timeout=10</span> or <span class="hl">timeout=(3, 10)</span> (connect timeout, read timeout) on every single requests call.
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Production Error Patterns</div>
+
+    <div class="sub-title">Complete Error Handler — Production Style</div>
+    <pre><span class="kw">import</span> requests, logging
+
+logger = logging.<span class="fn">getLogger</span>(__name__)
+
+<span class="kw">def</span> <span class="fn">call_openai</span>(prompt, api_key):
+    <span class="kw">try</span>:
+        resp = requests.<span class="fn">post</span>(
+            <span class="st">"https://api.openai.com/v1/chat/completions"</span>,
+            headers={<span class="st">"Authorization"</span>: <span class="fn">f</span><span class="st">"Bearer {api_key}"</span>},
+            json={
+                <span class="st">"model"</span>: <span class="st">"gpt-4o"</span>,
+                <span class="st">"messages"</span>: [{<span class="st">"role"</span>:<span class="st">"user"</span>,<span class="st">"content"</span>:prompt}]
+            },
+            timeout=<span class="nm">30</span>
+        )
+        resp.<span class="fn">raise_for_status</span>()
+        <span class="kw">return</span> resp.<span class="fn">json</span>()
+
+    <span class="kw">except</span> requests.exceptions.<span class="fn">HTTPError</span> <span class="kw">as</span> e:
+        code = e.response.status_code
+        <span class="kw">if</span> code == <span class="nm">401</span>:
+            logger.<span class="fn">error</span>(<span class="st">"Invalid API key"</span>)
+        <span class="kw">elif</span> code == <span class="nm">429</span>:
+            logger.<span class="fn">warning</span>(<span class="st">"Rate limited by OpenAI"</span>)
+        <span class="kw">elif</span> code >= <span class="nm">500</span>:
+            logger.<span class="fn">error</span>(<span class="st">"OpenAI server error"</span>)
+        <span class="kw">raise</span>
+
+    <span class="kw">except</span> requests.exceptions.<span class="fn">Timeout</span>:
+        logger.<span class="fn">error</span>(<span class="st">"OpenAI request timed out"</span>)
+        <span class="kw">raise</span>
+
+    <span class="kw">except</span> requests.exceptions.<span class="fn">ConnectionError</span>:
+        logger.<span class="fn">error</span>(<span class="st">"Cannot reach OpenAI API"</span>)
+        <span class="kw">raise</span></pre>
+
+    <div class="sub-title">In Your Projects</div>
+    <div class="box-blue">
+      <strong>🏥 MediLens — Retell AI + Gemini calls</strong>
+      Every external API call — Retell AI voice, Gemini LLM, Google Calendar — needs a try/except with timeout. A 503 from Gemini should trigger a retry. A 401 means the API key expired — alert immediately, don't retry silently.
+    </div>
+    <div class="box-blue">
+      <strong>🛒 Lumina — Shopify API</strong>
+      Shopify returns 429 with a Retry-After header during flash sales. Your webhook handler should read that header and pause before retrying — not hammer the API and make it worse.
+    </div>
+
+    <div class="section-title teal" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between 401 and 403?"</div>
+      <div class="a">401 Unauthorized means the request has no valid authentication — the user hasn't logged in or the token is missing or expired. You should refresh the token and retry. 403 Forbidden means the user is authenticated but doesn't have permission to access that resource. Retrying won't help — the user needs to be granted access.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "Should you retry a 404 error?"</div>
+      <div class="a">No. 404 means the resource doesn't exist at that URL. Retrying will always return 404 — nothing will change. You should handle it by logging the error and notifying the caller. Only retry 5xx errors and 429, since those are temporary conditions that may resolve on the next attempt.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      2xx = success. 3xx = redirect. 4xx = client bug (don't retry except 429). 5xx = server bug (retry with backoff). Always set timeout. Use raise_for_status() to auto-raise on errors. Log 5xx, fix 4xx.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #9 of 25 · HTTP Status Codes + Error Handling · API Reliability · Maryum Akram · Next: Sheet #10 — Retry Patterns + Exponential Backoff</div>
+</div>
+</body>
+</html>

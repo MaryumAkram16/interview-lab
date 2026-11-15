@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hugging Face + Model Types — Maryum Akram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f7f7fb; color: #1a1a2e; font-size: 11.5px; line-height: 1.5; }
+  .page { width: 1120px; margin: 0 auto; background: white; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .header { grid-column: 1/-1; background: #2a1500; color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { font-size: 10px; color: #ffab40; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-title { font-size: 26px; font-weight: 800; }
+  .header-sub { font-size: 13px; color: #ffcc80; font-weight: 600; }
+  .header-right { font-size: 10px; color: #aaa; text-align: right; line-height: 1.8; }
+  .header-right a { color: #ffab40; text-decoration: none; }
+  .col { padding: 16px 14px; border-right: 1px solid #ebebf5; }
+  .col:last-child { border-right: none; }
+  .section-title { background: #2a1500; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; margin-bottom: 10px; border-radius: 3px; }
+  .section-title.blue   { background: #0d2b5e; }
+  .section-title.purple { background: #1a0a33; }
+  .section-title.green  { background: #0a2a1a; }
+  .sub-title { font-size: 10.5px; font-weight: 700; color: #1a1a2e; margin: 10px 0 4px; padding-bottom: 2px; border-bottom: 1.5px solid #e0e0f0; }
+  p { font-size: 11px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+  pre { background: #0d1117; color: #e6edf3; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 8px 10px; border-radius: 4px; margin: 6px 0; line-height: 1.6; }
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nm{color:#79c0ff}.op{color:#ffa657}
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10.5px; }
+  th { background: #2a1500; color: white; padding: 5px 8px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 4px 8px; border-bottom: 1px solid #ebebf5; vertical-align: top; }
+  tr:nth-child(even) td { background: #fffaf0; }
+  .box-green{background:#e8f5e9;border-left:3px solid #2e7d32;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#1b5e20}
+  .box-green strong{color:#1b5e20;font-size:10px;display:block;margin-bottom:2px}
+  .box-blue{background:#e3f2fd;border-left:3px solid #1565c0;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#0d47a1}
+  .box-blue strong{color:#0d47a1;font-size:10px;display:block;margin-bottom:2px}
+  .box-red{background:#fdecea;border-left:3px solid #c62828;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#7f0000}
+  .box-red strong{color:#b71c1c;font-size:10px;display:block;margin-bottom:2px}
+  .qa-box{background:#fffde7;border:1.5px solid #f9a825;border-radius:5px;padding:8px 10px;margin:8px 0;font-size:10.5px}
+  .qa-box .q{font-weight:700;color:#e65100;margin-bottom:4px}
+  .qa-box .a{color:#333;line-height:1.5}
+  .analogy{background:#f3e5f5;border-left:3px solid #7b1fa2;padding:7px 10px;margin:6px 0;border-radius:0 4px 4px 0;font-size:10.5px;color:#4a148c;font-style:italic}
+  .footer{grid-column:1/-1;background:#2a1500;color:#ffab40;font-size:10px;text-align:center;padding:8px;font-weight:600;letter-spacing:0.5px}
+  .hl{background:#e8eaff;padding:1px 4px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#3730a3}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="header-brand">LLMs & Generative AI · Cheat Sheet #22</div>
+      <div class="header-title">Hugging Face + Model Types</div>
+      <div class="header-sub">LLM vs SLM vs Reasoning Models · Encoder/Decoder · Transformers Pipeline · Model Cards</div>
+    </div>
+    <div class="header-right">Maryum Akram<br>AI Automation Engineer<br><a href="https://github.com/MaryumAkram16">github.com/MaryumAkram16</a></div>
+  </div>
+
+  <!-- COL 1 -->
+  <div class="col">
+    <div class="section-title">Model Types</div>
+    <div class="analogy">🧩 Not all language models are the same. A screwdriver and a drill both turn screws but at different scales. LLMs are powerful but expensive. SLMs are fast and cheap. Reasoning models think longer before answering — like a student who shows their work.</div>
+
+    <table>
+      <tr><th>Type</th><th>Examples</th><th>Best For</th></tr>
+      <tr><td><strong>LLM</strong></td><td>GPT-4o, Gemini 1.5, Claude</td><td>Complex tasks, general use</td></tr>
+      <tr><td><strong>SLM</strong></td><td>Gemma 3n, Phi-3, Mistral 7B</td><td>On-device, low-cost, fast</td></tr>
+      <tr><td><strong>Reasoning</strong></td><td>o3, DeepSeek-R1, Claude Opus</td><td>Math, code, multi-step logic</td></tr>
+      <tr><td><strong>Embedding</strong></td><td>text-embedding-3, voyage-4</td><td>Semantic search, RAG</td></tr>
+      <tr><td><strong>Vision</strong></td><td>GPT-4o, LLaVA, PaliGemma</td><td>Image + text tasks</td></tr>
+      <tr><td><strong>Audio</strong></td><td>Whisper, Bark</td><td>Speech-to-text, TTS</td></tr>
+    </table>
+
+    <div class="sub-title">Encoder vs Decoder vs Encoder-Decoder</div>
+    <table>
+      <tr><th>Architecture</th><th>Examples</th><th>Good At</th></tr>
+      <tr><td><strong>Encoder only</strong></td><td>BERT, DistilBERT</td><td>Classification, embeddings, NER</td></tr>
+      <tr><td><strong>Decoder only</strong></td><td>GPT-4, LLaMA, Gemma</td><td>Text generation, chat</td></tr>
+      <tr><td><strong>Encoder-Decoder</strong></td><td>T5, BART, mT5</td><td>Translation, summarization</td></tr>
+    </table>
+
+    <div class="box-blue">
+      <strong>💡 AI Engineer vs ML Engineer — your distinction</strong>
+      AI Engineers (you) build systems <em>with</em> existing models via APIs — RAG pipelines, voice agents, automation workflows. ML Engineers <em>train</em> models from scratch or fine-tune them. You don't need to train models to build production AI — but you do need to understand which model to pick and why.
+    </div>
+
+    <div class="sub-title">Which Model to Use When</div>
+    <table>
+      <tr><th>Task</th><th>Model Choice</th></tr>
+      <tr><td>Production chatbot</td><td>GPT-4o or Gemini 1.5 Pro</td></tr>
+      <tr><td>Embeddings for RAG</td><td>text-embedding-3-small</td></tr>
+      <tr><td>Voice transcription</td><td>Whisper</td></tr>
+      <tr><td>Fast, cheap classification</td><td>DistilBERT, GPT-4o-mini</td></tr>
+      <tr><td>Code generation</td><td>GPT-4o, Claude Sonnet</td></tr>
+      <tr><td>Complex reasoning</td><td>o3, DeepSeek-R1</td></tr>
+    </table>
+  </div>
+
+  <!-- COL 2 -->
+  <div class="col">
+    <div class="section-title blue">Hugging Face — Core Usage</div>
+
+    <div class="sub-title">Pipeline — Quickest Way</div>
+    <pre><span class="kw">from</span> transformers <span class="kw">import</span> pipeline
+
+<span class="cm"># Sentiment analysis</span>
+classify = <span class="fn">pipeline</span>(
+    <span class="st">"sentiment-analysis"</span>,
+    model=<span class="st">"distilbert-base-uncased-finetuned-sst-2-english"</span>
+)
+<span class="kw">print</span>(<span class="fn">classify</span>(<span class="st">"The service was excellent!"</span>))
+<span class="cm"># [{'label': 'POSITIVE', 'score': 0.9998}]</span>
+
+<span class="cm"># Text generation</span>
+generate = <span class="fn">pipeline</span>(<span class="st">"text-generation"</span>, model=<span class="st">"gpt2"</span>)
+<span class="kw">print</span>(<span class="fn">generate</span>(<span class="st">"The hospital triage system"</span>, max_new_tokens=<span class="nm">50</span>))
+
+<span class="cm"># Named Entity Recognition</span>
+ner = <span class="fn">pipeline</span>(<span class="st">"ner"</span>, aggregation_strategy=<span class="st">"simple"</span>)
+<span class="kw">print</span>(<span class="fn">ner</span>(<span class="st">"Dr. Maryum works at Lahore General Hospital"</span>))</pre>
+
+    <div class="sub-title">Load Model + Tokenizer Manually</div>
+    <pre><span class="kw">from</span> transformers <span class="kw">import</span> AutoTokenizer, AutoModel
+<span class="kw">import</span> torch
+
+model_id = <span class="st">"distilbert-base-uncased"</span>
+tokenizer = AutoTokenizer.<span class="fn">from_pretrained</span>(model_id)
+model     = AutoModel.<span class="fn">from_pretrained</span>(model_id)
+
+<span class="cm"># Tokenize text</span>
+inputs = <span class="fn">tokenizer</span>(
+    <span class="st">"Patient has fever and cough"</span>,
+    return_tensors=<span class="st">"pt"</span>,
+    truncation=<span class="nm">True</span>,
+    max_length=<span class="nm">512</span>
+)
+
+<span class="cm"># Get embeddings (no gradient needed)</span>
+<span class="kw">with</span> torch.<span class="fn">no_grad</span>():
+    outputs = <span class="fn">model</span>(**inputs)
+
+<span class="cm"># CLS token = sentence embedding</span>
+embedding = outputs.last_hidden_state[:, <span class="nm">0</span>, :]
+<span class="kw">print</span>(embedding.shape)  <span class="cm"># [1, 768]</span></pre>
+
+    <div class="sub-title">Save + Load Locally</div>
+    <pre><span class="cm"># Save model locally (avoid re-downloading)</span>
+tokenizer.<span class="fn">save_pretrained</span>(<span class="st">"./my_model"</span>)
+model.<span class="fn">save_pretrained</span>(<span class="st">"./my_model"</span>)
+
+<span class="cm"># Load from local path</span>
+tokenizer = AutoTokenizer.<span class="fn">from_pretrained</span>(<span class="st">"./my_model"</span>)
+model     = AutoModel.<span class="fn">from_pretrained</span>(<span class="st">"./my_model"</span>)</pre>
+
+    <div class="box-green">
+      <strong>✅ Available Pipeline Tasks</strong>
+      sentiment-analysis, text-generation, text-classification, token-classification (NER), question-answering, summarization, translation, fill-mask, zero-shot-classification, image-classification, document-question-answering
+    </div>
+  </div>
+
+  <!-- COL 3 -->
+  <div class="col">
+    <div class="section-title green">Tokenization Deep Dive</div>
+    <div class="analogy">✂️ Tokenization splits text into subword pieces. "playing" might become ["play", "##ing"]. The model never sees raw text — only token IDs (integers). Different models use different tokenizers — always use the tokenizer paired with the model.</div>
+
+    <pre><span class="kw">from</span> transformers <span class="kw">import</span> AutoTokenizer
+
+tokenizer = AutoTokenizer.<span class="fn">from_pretrained</span>(<span class="st">"gpt2"</span>)
+
+text = <span class="st">"Tokenization splits text into pieces"</span>
+tokens = tokenizer.<span class="fn">tokenize</span>(text)
+ids    = tokenizer.<span class="fn">encode</span>(text)
+
+<span class="kw">print</span>(tokens)
+<span class="cm"># ['Token', 'ization', 'Ġsplits', 'Ġtext', ...]</span>
+<span class="kw">print</span>(ids)
+<span class="cm"># [30642, 1634, 26291, 2420, ...]</span>
+
+<span class="cm"># Decode back to text</span>
+<span class="kw">print</span>(tokenizer.<span class="fn">decode</span>(ids))
+<span class="cm"># "Tokenization splits text into pieces"</span>
+
+<span class="cm"># Batch tokenize with padding</span>
+batch = tokenizer(
+    [<span class="st">"First sentence"</span>, <span class="st">"Second longer sentence here"</span>],
+    padding=<span class="nm">True</span>,
+    truncation=<span class="nm">True</span>,
+    max_length=<span class="nm">128</span>,
+    return_tensors=<span class="st">"pt"</span>
+)</pre>
+
+    <div class="sub-title">Model Card — What to Check</div>
+    <table>
+      <tr><th>Field</th><th>Why It Matters</th></tr>
+      <tr><td><strong>Intended use</strong></td><td>Is it built for your task?</td></tr>
+      <tr><td><strong>Training data</strong></td><td>Is it biased toward certain languages/domains?</td></tr>
+      <tr><td><strong>Limitations</strong></td><td>Known failure modes</td></tr>
+      <tr><td><strong>License</strong></td><td>Can you use it commercially?</td></tr>
+      <tr><td><strong>Evaluation</strong></td><td>Benchmark scores on relevant tasks</td></tr>
+    </table>
+
+    <div class="section-title purple" style="margin-top:10px;">Master Interview Answers</div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is the difference between an encoder-only and decoder-only model?"</div>
+      <div class="a">Encoder-only models like BERT process the entire input bidirectionally — they see all tokens at once. This makes them excellent for understanding tasks like classification, NER, and embeddings. Decoder-only models like GPT generate text left-to-right — each token can only attend to previous tokens. This makes them ideal for generation tasks like chatbots and code completion. Encoder-decoder models like T5 combine both for sequence-to-sequence tasks like translation.</div>
+    </div>
+
+    <div class="qa-box">
+      <div class="q">🎤 Q: "What is a tokenizer and why does it matter?"</div>
+      <div class="a">A tokenizer converts raw text into the integer IDs that a model actually processes. It uses subword tokenization — splitting words into frequent pieces so the vocabulary stays manageable while handling rare words. You must always use the exact tokenizer paired with your model — different models have different vocabularies and special tokens. Using the wrong tokenizer produces garbage input IDs and garbage output.</div>
+    </div>
+
+    <div class="box-green">
+      <strong>✅ One-line summary</strong>
+      Encoder-only (BERT) = understanding/classification. Decoder-only (GPT) = generation. Encoder-Decoder (T5) = translation/summarization. Hugging Face pipeline = 2-line inference for any NLP task. Always use the tokenizer matched to the model. Check model card license before production use.
+    </div>
+  </div>
+
+  <div class="footer">Cheat Sheet #22 of 25 · Hugging Face + Model Types · LLMs & Gen AI Complete ✅ · Maryum Akram · Next: Sheet #23 — Transactions, ACID, Row-Level Locking</div>
+</div>
+</body>
+</html>

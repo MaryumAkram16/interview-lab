@@ -10,8 +10,8 @@ function harness(){
  vm.createContext(context);
  vm.runInContext(fs.readFileSync(path.join(root,'assets/cloud.js'),'utf8'),context);
  vm.runInContext(fs.readFileSync(path.join(root,'assets/app.js'),'utf8').replace(/boot\(\);\s*$/,''),context);
- context.content=Object.fromEntries(['topics','questions','cheat-sheets'].map(n=>[n,JSON.parse(fs.readFileSync(path.join(root,'data',n+'.json'),'utf8'))]));
- vm.runInContext('topics=content.topics;bank=content.questions;cheats=content["cheat-sheets"];',context);
+ context.content=Object.fromEntries(['topics','questions','cheat-sheets','cheatsheet-catalog'].map(n=>[n,JSON.parse(fs.readFileSync(path.join(root,'data',n+'.json'),'utf8'))]));
+ vm.runInContext('topics=content.topics;bank=content.questions;cheats=content["cheat-sheets"];sheetCatalog=content["cheatsheet-catalog"];',context);
  return {context,run:s=>vm.runInContext(s,context),elements};
 }
 test('legacy numeric backups migrate without losing answers or notes',()=>{
@@ -50,4 +50,19 @@ test('cloud restore cancellation leaves browser state intact',async()=>{
  context.fetch=async()=>({ok:true,text:async()=>JSON.stringify([{revision:4,updated_at:'2026-11-15',payload:{attempts:[],drafts:{},notes:{}}}])});
  run(`cloudSession={access_token:'test',user:{id:'a'}};state.drafts['q-001']='keep me';page='Cloud backup';render()`);
  await run('cloudRestore()');assert.equal(run(`state.drafts['q-001']`),'keep me');assert.equal(run('cloudRevision'),null);
+});
+
+test('sheet search and category filters include only matching original topics',()=>{
+ const {run}=harness();assert.equal(run('catalogMatches().length'),25);
+ run("sheetCategory='Backend Engineering'");assert.equal(run('catalogMatches().length'),8);
+ run("sheetSearch='backoff'");assert.equal(run('catalogMatches()[0].id'),'retry-backoff');
+ run("sheetCategory='DSA & Python'");assert.equal(run('catalogMatches().length'),0);
+ run("sheetCategory='All topics';sheetSearch='HaShInG'");assert.equal(run('catalogMatches()[0].id'),'hashing');
+});
+test('cheat sheet cards link to deployed HTML assets in a separate tab',()=>{
+ const {run,elements}=harness();run("go('Cheat sheets')");
+ const cards=elements.get('#sheetResults').innerHTML;
+ assert.equal((cards.match(/class="catalog-item"/g)||[]).length,25);
+ assert.match(cards,/href=".\/data\/cheatsheets\/hashing-cheat-sheet.html"/);
+ assert.match(cards,/target="_blank" rel="noopener noreferrer"/);
 });
