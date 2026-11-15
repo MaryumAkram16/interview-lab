@@ -1,0 +1,46 @@
+{
+  "Backend": [
+    [
+      "HTTP essentials",
+      "200 success; 201 created; 202 accepted for async processing; 204 no body; 400 bad request; 401 unauthenticated; 403 forbidden; 404 absent; 409 conflict; 422 semantic validation; 429 rate limited; 500 server error; 502 bad gateway; 503 unavailable. Define a consistent error contract."
+    ],
+    [
+      "Idempotency & retries",
+      "Stable client key + tenant/operation scope + unique database constraint + request fingerprint + stored result. Retry transient failures only when safe. Use bounded exponential backoff with jitter and honor Retry-After. A timeout may mean the operation succeeded. Reconcile external side effects."
+    ],
+    [
+      "Concurrency & databases",
+      "Async is not mutual exclusion. Protect invariants with unique constraints, transactions, row locks or atomic conditional updates. In-process locks do not coordinate service replicas. Index actual query patterns; understand write cost and isolation level."
+    ],
+    [
+      "RAG & evaluation",
+      "Ingest → chunk → embed → retrieve with permission filters → optionally rerank → generate supported answers with citations. Evaluate retrieval recall separately from answer correctness and groundedness. Test unanswerable and adversarial questions. Split train/validation/test before learning preprocessing."
+    ],
+    [
+      "Remote written answers",
+      "State assumptions → describe the approach → name failure cases → explain tradeoffs → show validation. For debugging: reproduce, inspect logs and inputs, isolate the cause, apply a small fix, verify, then document."
+    ]
+  ],
+  "DSA": [
+    [
+      "Hash maps & sets",
+      "Dict/set membership is average O(1), worst-case O(n). List membership is O(n). Keys must be hashable; equal keys need equal hashes. Tuples are hashable only if all elements are hashable. Collisions do not imply equality."
+    ],
+    [
+      "Patterns to recognize",
+      "Pair lookup: hash map. Counts: frequency map. Contiguous ranges: sliding window or prefix sums. Sorted pairs: two pointers. Nested structure: stack. Shortest unweighted path: BFS. State the invariant before writing the loop."
+    ],
+    [
+      "Complexity & Python traps",
+      "List append: amortized O(1); pop(0): O(n); sorting: O(n log n). Slicing copies elements. Avoid mutable default arguments. == checks value; is checks identity. Assignment aliases mutable objects; a shallow copy still shares nested objects."
+    ],
+    [
+      "From a blank page",
+      "Clarify input/output → walk through an example → write a simple correct version → identify repeated work → optimize → test empty, one item, duplicates, negatives and boundaries → explain time and extra space."
+    ],
+    [
+      "Self-review checklist",
+      "Does the code terminate? Are indices correct? Is an element reused accidentally? Does a mutation affect callers? What invariant holds each iteration? Can I explain the complexity without guessing?"
+    ]
+  ]
+}

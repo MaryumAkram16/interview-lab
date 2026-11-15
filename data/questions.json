@@ -1,0 +1,119 @@
+[
+  {
+    "t": 0,
+    "title": "Two sum, without the shortcuts",
+    "type": "Coding",
+    "min": 20,
+    "q": "Given nums and target, return the indices of two distinct elements whose sum equals target. Return None if there is no pair. Write Python from scratch and explain your time and space complexity. Try [3, 3] with target 6.",
+    "h": [
+      "A nested loop works, but can you avoid scanning earlier values again?",
+      "Store each previously seen value with its index. For x, search for target - x before inserting x."
+    ],
+    "s": "def two_sum(nums, target):\n    seen = {}\n    for i, x in enumerate(nums):\n        need = target - x\n        if need in seen:\n            return (seen[need], i)\n        seen[x] = i\n    return None\n\nExpected O(n) time and O(n) space. Hash-table operations are average O(1), not guaranteed worst-case O(1). Checking before insertion prevents reusing an element. Tests: [], [3,3], negatives, no pair.",
+    "id": "q-001"
+  },
+  {
+    "t": 0,
+    "title": "What makes a valid dictionary key?",
+    "type": "Concept",
+    "min": 8,
+    "q": "Explain hashing versus equality. Why can a tuple be a dictionary key but a list cannot? Is every tuple hashable? Give concrete examples.",
+    "h": [
+      "A key needs a stable hash during its lifetime and consistent equality.",
+      "Consider (1, 2) versus (1, []). Equal keys must have equal hashes; collisions can still occur."
+    ],
+    "s": "A hash maps a key to an integer used for lookup. Equality resolves candidates, including collisions. Hashable objects need a stable hash and equal objects must have equal hashes. Lists are mutable and unhashable. (1, 2) is hashable; (1, []) is not because its list element is unhashable. Different keys can share a hash. Dict lookup is average O(1).",
+    "id": "q-002"
+  },
+  {
+    "t": 1,
+    "title": "Find adjacent available seats",
+    "type": "Coding",
+    "min": 25,
+    "q": "Implement find_seats(rows, k) with no imports. Rows contain 0 for available and 1 for occupied. Return (row_index, start_index) for the first run of k free seats, otherwise None. Define behavior for k <= 0.",
+    "h": [
+      "Track a consecutive-free-seat count for each row.",
+      "Reset on an occupied seat; return the start when the count reaches k."
+    ],
+    "s": "def find_seats(rows, k):\n    if k <= 0:\n        raise ValueError(\"k must be positive\")\n    for r, row in enumerate(rows):\n        run = 0\n        for c, seat in enumerate(row):\n            run = run + 1 if seat == 0 else 0\n            if run == k:\n                return (r, c - k + 1)\n    return None\n\nO(total seats) time, O(1) extra space. Test empty rows, k greater than row length, runs ending at last seat, all occupied, and invalid k.",
+    "id": "q-003"
+  },
+  {
+    "t": 2,
+    "title": "Design the complaint API response",
+    "type": "Scenario",
+    "min": 10,
+    "q": "Choose HTTP status codes for: creating a complaint, invalid input, missing authentication, forbidden access, an idempotency-key conflict, rate limiting, and a temporary upstream outage. When would GET vs POST be appropriate?",
+    "h": [
+      "Separate client errors (4xx) from server errors (5xx).",
+      "401 concerns authentication; 403 concerns authorization. Creating a resource commonly returns 201."
+    ],
+    "s": "Creation: 201 Created, ideally with Location. Invalid input: 400 (or 422 for semantic validation by contract). Missing/invalid credentials: 401. Forbidden: 403. Conflicting key/payload: 409. Rate limit: 429, honor Retry-After. Temporary upstream failure: often 502/503 depending on failure. GET retrieves without intended state changes; POST submits/creates and is not inherently idempotent.",
+    "id": "q-004"
+  },
+  {
+    "t": 3,
+    "title": "A payment request arrives twice",
+    "type": "Scenario",
+    "min": 15,
+    "q": "A client times out after submitting a payment and retries while the first request is still running. Design an idempotent endpoint. Include concurrent requests, payload mismatch, and a crash after the external charge.",
+    "h": [
+      "A random UUID alone does not prevent duplicates. It needs atomic server-side persistence.",
+      "Use a unique key scoped by account and operation; store request fingerprint and state. External side effects need their own idempotency strategy."
+    ],
+    "s": "Require a stable client key. Scope it by account and operation, persist a request fingerprint, and enforce a UNIQUE constraint atomically. Same key + different payload: 409. Same completed request: replay recorded response. In progress: return documented pending/conflict response. Use the payment provider’s idempotency key too. Persist provider reference and reconcile uncertain outcomes; do not blindly repeat a charge after a crash. Add TTL policy and bounded retries with backoff/jitter for transient errors.",
+    "id": "q-005"
+  },
+  {
+    "t": 4,
+    "title": "The last appointment slot",
+    "type": "Scenario",
+    "min": 15,
+    "q": "Two workers both read that the last appointment slot is available, then both book it. Explain why async alone does not fix this and propose a database-safe design.",
+    "h": [
+      "The read-then-write sequence is a race across workers.",
+      "Use a transaction and row lock, a conditional UPDATE, or a unique constraint that expresses the invariant."
+    ],
+    "s": "Async coordinates waiting, not cross-worker exclusion. Enforce one booking per slot using a unique constraint (or appropriate partial unique index for active bookings). In a transaction, attempt the booking and handle uniqueness failure. A row lock on the slot or atomic conditional update can protect capacity. Keep transactions short. An in-process lock alone cannot coordinate multiple service instances.",
+    "id": "q-006"
+  },
+  {
+    "t": 5,
+    "title": "Transactions and useful indexes",
+    "type": "Concept",
+    "min": 12,
+    "q": "Design a bookings table with customer_id, slot_id, status, and created_at. Explain transactions, indexes, and why SELECT then INSERT is insufficient to prevent duplicate active bookings.",
+    "h": [
+      "An index improves reads but adds write and storage cost.",
+      "Uniqueness is an invariant; a transaction still needs correct constraints or locking."
+    ],
+    "s": "Use a primary key, foreign keys to customer and slot, status constraints, and a uniqueness rule matching the active-booking policy. Transactions make grouped changes atomic and isolate concurrent operations according to isolation level. A plain SELECT then INSERT races under common isolation levels. Use database-enforced uniqueness and handle conflicts. Add composite indexes based on actual filters/sort (e.g. customer_id, created_at); inspect query plans.",
+    "id": "q-007"
+  },
+  {
+    "t": 6,
+    "title": "A RAG answer with no evidence",
+    "type": "Scenario",
+    "min": 15,
+    "q": "Your support RAG assistant confidently invents a refund policy. Walk through retrieval, generation, evaluation, and tenant isolation fixes. How would you know the fix helped?",
+    "h": [
+      "Inspect retrieved chunks before adjusting the prompt.",
+      "Evaluate retrieval separately from answer quality and enforce tenant filtering before retrieval results reach the model."
+    ],
+    "s": "Check ingestion, chunk boundaries, metadata, query rewriting, retrieval recall, and reranker behavior. Filter by authenticated tenant and permissions server-side; never trust a model-supplied tenant ID. Require supported answers with citations and abstention when evidence is missing. Build held-out questions with expected sources including unanswerable and cross-tenant probes. Measure retrieval recall@k, groundedness, answer correctness, latency and cost separately. Treat retrieved instructions as untrusted data.",
+    "id": "q-008"
+  },
+  {
+    "t": 7,
+    "title": "The suspiciously perfect model",
+    "type": "Concept",
+    "min": 10,
+    "q": "A classifier scores 99% after preprocessing the entire dataset before splitting. What could be wrong? Describe a correct train, validation, and test workflow, including duplicate users and time-dependent data.",
+    "h": [
+      "Ask which preprocessing steps learned statistics or used labels.",
+      "Fit scalers, imputers and feature selection on training data only. Group or time splits may be necessary."
+    ],
+    "s": "Split before fitting learned preprocessing. Fit transformations on train, transform validation/test using those fitted parameters. Tune on validation and reserve test for final unbiased evaluation. Remove leakage from target-derived features, near-duplicates and post-outcome information. Split by user/group or time when the deployment setting requires it. Select task-appropriate metrics and compare to a baseline; never repeatedly tune against the test set.",
+    "id": "q-009"
+  }
+]
