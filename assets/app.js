@@ -42,17 +42,28 @@ async function boot(){try{
 
 function catalogMatches(){
  const query=sheetSearch.trim().toLowerCase();
- return sheetCatalog.filter(item=>(sheetCategory==='All topics'||item.category===sheetCategory)&&
- (!query||(item.title+' '+item.category+' '+item.keywords).toLowerCase().includes(query)));
+ return sheetCatalog.filter(item=>(sheetCategory==='All topics'||item.topic===sheetCategory)&&
+ (!query||(item.title+' '+item.topic+' '+item.category+' '+item.keywords).toLowerCase().includes(query)));
 }
 function catalogShell(){
- const categories=['All topics',...new Set(sheetCatalog.map(item=>item.category))];
- return `<section class="card" aria-label="Your imported cheat sheets"><div class="cardhead"><div><h2>Your cheat sheets</h2><p class="smalltext" style="margin-bottom:0">${sheetCatalog.length} topics · Original formatting · One copy per topic</p></div><span class="tag">PERSONAL COLLECTION</span></div><div class="catalog-controls"><input id="sheetSearch" type="search" aria-label="Search cheat sheets" placeholder="Search sheets, concepts, or tools…" value="${esc(sheetSearch)}" oninput="sheetSearch=this.value;renderCatalogResults()"><select aria-label="Filter cheat sheets by topic" onchange="sheetCategory=this.value;renderCatalogResults()">${categories.map(c=>`<option value="${esc(c)}" ${c===sheetCategory?'selected':''}>${esc(c)}</option>`).join('')}</select></div><p class="smalltext" id="sheetCount" role="status"></p><div id="sheetResults" class="catalog-grid"></div></section>`;
+ const categories=['All topics',...catalogGroups(sheetCatalog).map(group=>group.topic)];
+ return `<section class="card" aria-label="Your imported cheat sheets"><div class="cardhead"><div><h2>Your cheat sheets</h2><p class="smalltext" style="margin-bottom:0">${sheetCatalog.length} sheets · ${catalogGroups(sheetCatalog).length} topics · Original formatting</p></div><span class="tag">PERSONAL COLLECTION</span></div><div class="catalog-controls"><input id="sheetSearch" type="search" aria-label="Search cheat sheets" placeholder="Search sheets, concepts, or tools…" value="${esc(sheetSearch)}" oninput="sheetSearch=this.value;renderCatalogResults()"><select aria-label="Filter cheat sheets by topic" onchange="sheetCategory=this.value;renderCatalogResults()">${categories.map(c=>`<option value="${esc(c)}" ${c===sheetCategory?'selected':''}>${esc(c)}</option>`).join('')}</select></div><p class="smalltext" id="sheetCount" role="status"></p><div id="sheetResults"></div></section>`;
+}
+function catalogGroups(items){
+ const sorted=[...items].sort((a,b)=>a.topicOrder-b.topicOrder||a.order-b.order||a.title.localeCompare(b.title));
+ const groups=[];
+ for(const item of sorted){
+  let group=groups.find(group=>group.topic===item.topic);
+  if(!group){group={topic:item.topic,items:[]};groups.push(group)}
+  group.items.push(item);
+ }
+ return groups;
 }
 function renderCatalogResults(){
  const results=document.getElementById('sheetResults');if(!results)return;
- const matches=catalogMatches();document.getElementById('sheetCount').textContent=matches.length+' of '+sheetCatalog.length+' sheets · Opens in a new tab';
- results.innerHTML=matches.length?matches.map(item=>`<a class="catalog-item" href="./${esc(item.path)}" target="_blank" rel="noopener noreferrer"><span class="tag">${esc(item.category)}</span><h3>${esc(item.title)}</h3><span class="smalltext">Read cheat sheet <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></span></a>`).join(''):'<div class="empty">No sheets match. Try a broader search or choose All topics.</div>';
+ const matches=catalogMatches(),groups=catalogGroups(matches);
+ document.getElementById('sheetCount').textContent=matches.length+' of '+sheetCatalog.length+' sheets in '+groups.length+' topics · Opens in a new tab';
+ results.innerHTML=groups.length?groups.map((group,index)=>`<section class="catalog-topic" aria-labelledby="sheet-topic-${index}"><div class="catalog-topic-heading"><h3 id="sheet-topic-${index}">${esc(group.topic)}</h3><span class="tag">${group.items.length} sheets</span></div><div class="catalog-grid">${group.items.map(item=>`<a class="catalog-item" href="./${esc(item.path)}" target="_blank" rel="noopener noreferrer"><span class="tag">${esc(item.category)}</span><h4>${esc(item.title)}</h4><span class="smalltext">Read cheat sheet <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></span></a>`).join('')}</div></section>`).join(''):'<div class="empty">No sheets match. Try a broader search or choose All topics.</div>';
 }
 
 boot();

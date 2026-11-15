@@ -55,3 +55,5 @@ Use the same repository in either tool. Start with `AGENTS.md` and `docs/NEXT_TA
 ## Personal cheat sheet collection
 
 The Cheat sheets page includes 25 uploaded HTML sheets with category filters and search, plus the original quick-reference summaries. Full sheets open in a new tab with their original formatting. Edit the files in `data/cheatsheets/` and their metadata in `data/cheatsheet-catalog.json`. See [the duplicate review](docs/CHEATSHEET_IMPORT.md) for the 10 PDF/HTML counterpart pairs omitted from duplicate publication.
+
+The full-length collection is grouped under six visible topic headings: DSA & Python; APIs & Reliability; Databases & Concurrency; Applied AI & LLMs; Machine Learning; Deep Learning. Search and the topic filter work across these groups. The two later handbook uploads were reviewed and not duplicated because they contain the same 25 sheets in different orders. See `docs/HANDBOOK_REVIEW.md`.

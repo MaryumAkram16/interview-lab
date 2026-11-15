@@ -32,3 +32,13 @@ for(const entry of catalog){
 const diskSheets=fs.readdirSync(path.join(root,'data/cheatsheets')).filter(p=>p.endsWith('.html'));
 assert.equal(diskSheets.length,catalog.length,'Unindexed sheet files.');
 console.log(catalog.length+' unique, indexed cheat sheets verified with content hashes.');
+
+const topicOrders=new Map();
+for(const entry of catalog){
+ assert(typeof entry.topic==='string'&&entry.topic.trim(),'Missing topic.');
+ assert(Number.isInteger(entry.topicOrder)&&entry.topicOrder>0&&Number.isInteger(entry.order)&&entry.order>0,'Invalid topic ordering.');
+ if(topicOrders.has(entry.topic))assert.equal(topicOrders.get(entry.topic),entry.topicOrder,'Inconsistent topic rank.');
+ topicOrders.set(entry.topic,entry.topicOrder);
+}
+assert.equal(new Set(topicOrders.values()).size,topicOrders.size,'Each topic needs a distinct rank.');
+console.log(topicOrders.size+' topic groups verified.');

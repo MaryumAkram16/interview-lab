@@ -54,7 +54,7 @@ test('cloud restore cancellation leaves browser state intact',async()=>{
 
 test('sheet search and category filters include only matching original topics',()=>{
  const {run}=harness();assert.equal(run('catalogMatches().length'),25);
- run("sheetCategory='Backend Engineering'");assert.equal(run('catalogMatches().length'),8);
+ run("sheetCategory='APIs & Reliability'");assert.equal(run('catalogMatches().length'),4);
  run("sheetSearch='backoff'");assert.equal(run('catalogMatches()[0].id'),'retry-backoff');
  run("sheetCategory='DSA & Python'");assert.equal(run('catalogMatches().length'),0);
  run("sheetCategory='All topics';sheetSearch='HaShInG'");assert.equal(run('catalogMatches()[0].id'),'hashing');
@@ -65,4 +65,16 @@ test('cheat sheet cards link to deployed HTML assets in a separate tab',()=>{
  assert.equal((cards.match(/class="catalog-item"/g)||[]).length,25);
  assert.match(cards,/href=".\/data\/cheatsheets\/hashing-cheat-sheet.html"/);
  assert.match(cards,/target="_blank" rel="noopener noreferrer"/);
+});
+
+test('topic groups are visibly separated and every sheet appears exactly once',()=>{
+ const {run,elements}=harness();run("go('Cheat sheets')");
+ assert.equal(run('catalogGroups(sheetCatalog).length'),6);
+ assert.equal(run('new Set(catalogGroups(sheetCatalog).flatMap(group=>group.items.map(item=>item.id))).size'),25);
+ const html=elements.get('#sheetResults').innerHTML;
+ assert.equal((html.match(/class="catalog-topic"/g)||[]).length,6);
+ for(const topic of ['DSA &amp; Python','APIs &amp; Reliability','Databases &amp; Concurrency','Applied AI &amp; LLMs','Machine Learning','Deep Learning'])assert(html.includes(topic));
+ run("sheetCategory='Databases & Concurrency';renderCatalogResults()");
+ assert.equal((elements.get('#sheetResults').innerHTML.match(/class="catalog-topic"/g)||[]).length,1);
+ assert.equal(run('catalogMatches().length'),4);
 });
